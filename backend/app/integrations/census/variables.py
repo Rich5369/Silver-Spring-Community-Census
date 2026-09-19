@@ -65,11 +65,21 @@ ACS_VARIABLES: dict[str, AcsVariable] = {
         ),
         # B01001 - Sex by Age. Young-adult cells, male then female.
         _v("B01001_001E", "Estimate!!Total:", "Total population (age table base)"),
+        _v(
+            "B01001_007E",
+            "Estimate!!Total:!!Male:!!18 and 19 years",
+            "Men aged 18-19",
+        ),
         _v("B01001_008E", "Estimate!!Total:!!Male:!!20 years", "Men aged 20"),
         _v("B01001_009E", "Estimate!!Total:!!Male:!!21 years", "Men aged 21"),
         _v("B01001_010E", "Estimate!!Total:!!Male:!!22 to 24 years", "Men aged 22-24"),
         _v("B01001_011E", "Estimate!!Total:!!Male:!!25 to 29 years", "Men aged 25-29"),
         _v("B01001_012E", "Estimate!!Total:!!Male:!!30 to 34 years", "Men aged 30-34"),
+        _v(
+            "B01001_031E",
+            "Estimate!!Total:!!Female:!!18 and 19 years",
+            "Women aged 18-19",
+        ),
         _v("B01001_032E", "Estimate!!Total:!!Female:!!20 years", "Women aged 20"),
         _v("B01001_033E", "Estimate!!Total:!!Female:!!21 years", "Women aged 21"),
         _v(
@@ -198,12 +208,16 @@ class MetricSpec:
         return f"({numerator}) / {self.denominator_id} * 100"
 
 
+# ACS splits B01001 at 18-19, then 20, 21, 22-24, 25-29, 30-34, separately by
+# sex - so "adults 18 to 34" needs twelve cells rather than one.
 _YOUNG_ADULT_CELLS: tuple[str, ...] = (
+    "B01001_007E",
     "B01001_008E",
     "B01001_009E",
     "B01001_010E",
     "B01001_011E",
     "B01001_012E",
+    "B01001_031E",
     "B01001_032E",
     "B01001_033E",
     "B01001_034E",
@@ -243,15 +257,15 @@ METRIC_SPECS: tuple[MetricSpec, ...] = (
         variable_ids=("B01002_001E",),
     ),
     MetricSpec(
-        metric_key="young_adults_20_34",
-        description="Residents aged 20 to 34",
+        metric_key="young_adults_18_34",
+        description="Residents aged 18 to 34",
         unit="people",
         kind="sum",
         variable_ids=_YOUNG_ADULT_CELLS,
     ),
     MetricSpec(
         metric_key="young_adult_share",
-        description="Share of residents aged 20 to 34",
+        description="Share of residents aged 18 to 34",
         unit="percent",
         kind="share",
         variable_ids=_YOUNG_ADULT_CELLS,
@@ -354,6 +368,16 @@ METRIC_SPECS: tuple[MetricSpec, ...] = (
         denominator_id="B08301_001E",
     ),
     # --- Education ----------------------------------------------------------
+    # The table base is stored as its own metric so that an aggregate share
+    # across tracts can use the correct denominator. Total population is not
+    # a valid denominator here: B15003 counts only adults aged 25 and over.
+    MetricSpec(
+        metric_key="adults_25_plus",
+        description="Population aged 25 and over (educational attainment base)",
+        unit="people",
+        kind="direct",
+        variable_ids=("B15003_001E",),
+    ),
     MetricSpec(
         metric_key="bachelors_or_higher",
         description="Adults aged 25 and over with a bachelor's degree or higher",
@@ -370,6 +394,16 @@ METRIC_SPECS: tuple[MetricSpec, ...] = (
         denominator_id="B15003_001E",
     ),
     # --- Language -----------------------------------------------------------
+    # C16002's household universe differs from B25003's occupied housing
+    # units, so the language base is stored separately rather than reusing
+    # the tenure total as a denominator.
+    MetricSpec(
+        metric_key="language_households_total",
+        description="Total households (household-language base)",
+        unit="households",
+        kind="direct",
+        variable_ids=("C16002_001E",),
+    ),
     MetricSpec(
         metric_key="multilingual_households",
         description="Households speaking a language other than English at home",

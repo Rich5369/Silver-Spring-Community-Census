@@ -14,7 +14,6 @@ from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
 
 from app.api.router import api_router
 from app.core.config import Settings, get_settings
@@ -59,11 +58,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
 
     app.include_router(api_router)
-
-    @app.get("/", include_in_schema=False)
-    def api_home() -> RedirectResponse:
-        return RedirectResponse(url="docs")
-
     return app
 
 

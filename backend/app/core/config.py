@@ -31,9 +31,9 @@ class Settings(BaseSettings):
     # --- Service identity ---------------------------------------------------
     service_name: str = "community-intelligence-api"
     environment: str = "development"
-    # DEBUG is commonly set by shells and hosting tools to non-boolean values
-    # such as "release". Use a project-specific variable so those unrelated
-    # values cannot prevent the API from starting.
+    # Do not consume the generic DEBUG variable: shells and hosting platforms
+    # commonly use values such as ``release`` there. SSCC_DEBUG is explicit
+    # to this service and remains a normal boolean setting.
     debug: bool = Field(default=True, validation_alias="SSCC_DEBUG")
 
     # --- Database -----------------------------------------------------------
@@ -43,7 +43,8 @@ class Settings(BaseSettings):
     # --- External data sources ----------------------------------------------
     # Held as SecretStr so the value is masked in reprs, logs and tracebacks;
     # read it deliberately with ``.get_secret_value()`` at the call site.
-    # Ingestion may require a key, but normal runtime and the test suite do not.
+    # Optional: the Census API serves up to 500 requests per day unkeyed, so
+    # the app must boot and the test suite must pass without it.
     census_api_key: SecretStr | None = Field(
         default=None,
         description="US Census Data API key. Never commit this value.",
@@ -53,8 +54,17 @@ class Settings(BaseSettings):
     # Stored as a raw string rather than ``list[str]`` on purpose:
     # pydantic-settings parses complex types as JSON, which would reject the
     # comma-separated form that is far friendlier in a .env file or a shell.
+    # Vite's dev server increments its port when 5173 is already in use, so
+    # 5174 and 5175 are allowed too. Without them the frontend silently falls
+    # back to its demo data, which looks exactly like the backend being down -
+    # an expensive thing to debug during a live demo. Still an explicit list
+    # rather than a wildcard.
     cors_origins: str = Field(
-        default="http://localhost:5173,http://127.0.0.1:5173",
+        default=(
+            "http://localhost:5173,http://127.0.0.1:5173,"
+            "http://localhost:5174,http://127.0.0.1:5174,"
+            "http://localhost:5175,http://127.0.0.1:5175"
+        ),
         description="Comma-separated browser origins permitted to call this API.",
     )
 

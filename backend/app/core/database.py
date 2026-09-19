@@ -16,7 +16,6 @@ import sqlite3
 
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.engine import make_url
 
 from app.core.config import BACKEND_DIR, Settings, get_settings
 
@@ -64,12 +63,7 @@ def _prepare_sqlite_path(database_url: str) -> None:
 def create_database_engine(settings: Settings | None = None) -> Engine:
     """Build a SQLAlchemy :class:`~sqlalchemy.Engine` from settings."""
     settings = settings or get_settings()
-    database_url = make_url(settings.database_url)
-    if database_url.get_backend_name() == 'sqlite' and database_url.database not in (None, '', ':memory:'):
-        path = Path(database_url.database)
-        if not path.is_absolute():
-            database_url = database_url.set(database=str(BACKEND_DIR / path))
-    _prepare_sqlite_path(str(database_url))
+    _prepare_sqlite_path(settings.database_url)
 
     connect_args: dict[str, object] = {}
     if settings.is_sqlite:
@@ -78,7 +72,7 @@ def create_database_engine(settings: Settings | None = None) -> Engine:
         connect_args["check_same_thread"] = False
 
     return create_engine(
-        database_url,
+        settings.database_url,
         echo=settings.database_echo,
         connect_args=connect_args,
         future=True,
