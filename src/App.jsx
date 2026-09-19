@@ -122,6 +122,7 @@ function App() {
           <PlanningTrends
             insights={selectedInsights}
             trends={governmentTrends}
+            serviceRequests={serviceRequests}
             trendGeography={governmentSummary?.study_area?.study_area?.name}
             onExploreMap={() => scrollToSection('community-explorer')}
           />
