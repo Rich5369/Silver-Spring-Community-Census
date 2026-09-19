@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Index, Integer, String, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+from app.models.data_source import DataSource
 
 # Values for Geography.geography_type. Plain strings rather than a SQL enum:
 # SQLite has no native enum, and adding a type later should not need a
@@ -57,6 +58,18 @@ class Geography(Base):
     #: in Python. Swapping to a real geometry column later is a migration,
     #: not a redesign.
     geometry_geojson: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    #: Provenance for the boundary specifically. Separate from the metrics'
+    #: source because geometry and estimates are different products with
+    #: different vintages, and a map that shows a boundary must be able to
+    #: cite where that boundary came from. Nullable only because a geography
+    #: may be known before its boundary is fetched; it is set whenever
+    #: ``geometry_geojson`` is.
+    geometry_source_id: Mapped[int | None] = mapped_column(
+        ForeignKey("data_sources.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+
+    geometry_source: Mapped[DataSource | None] = relationship(lazy="joined")
 
     def __repr__(self) -> str:
         return f"<Geography geoid={self.geoid!r} type={self.geography_type!r}>"

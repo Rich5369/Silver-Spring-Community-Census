@@ -60,7 +60,7 @@ def seed(session: Session) -> tuple[DataSource, Geography, CommunityMetric, Busi
         source_variable="TEST_VAR_001E",
     )
 
-    business = BusinessRepository(session).upsert(
+    business, _ = BusinessRepository(session).upsert(
         data_source_id=source.id,
         external_id="test/1",
         name="TEST Sample Cafe",
