@@ -34,10 +34,24 @@ const fallbackData = {
   communityGeoJson: null,
 };
 
+const loadingData = {
+  businesses: [],
+  profile: {
+    areaName: 'Fenton Village, Silver Spring, Maryland',
+    dataStatus: 'Loading connected community data',
+    summary: 'Community details will appear when the data request completes.',
+    stats: [],
+    sources: [],
+  },
+  categories: [],
+  transit: [],
+  communityGeoJson: null,
+};
+
 export function useCommunityData(area) {
   const [state, setState] = useState({
     status: isApiConfigured ? 'loading' : 'success',
-    data: fallbackData,
+    data: isApiConfigured ? loadingData : fallbackData,
     error: null,
     issue: null,
     usingFallback: !isApiConfigured,
@@ -48,7 +62,13 @@ export function useCommunityData(area) {
 
     const controller = new AbortController();
     const options = { signal: controller.signal };
-    setState((current) => ({ ...current, status: 'loading', error: null, issue: null }));
+    setState({
+      status: 'loading',
+      data: loadingData,
+      error: null,
+      issue: null,
+      usingFallback: false,
+    });
 
     // GET /api/v1/businesses is the one required request: it is the record of
     // truth for the business layer. The tract polygons, the backend profile and
@@ -66,14 +86,26 @@ export function useCommunityData(area) {
 
         const communityMap = mapResult.status === 'fulfilled' ? mapResult.value : null;
         const businessesFailed = businessesResult.status === 'rejected';
-        // The map payload describes the same places, but its feature properties
-        // carry no dataset and no upstream id, so it is a fallback that keeps
-        // markers on screen - not an equal source. Preferring it silently is how
-        // provenance goes missing without anything looking broken.
-        const businesses = businessesFailed
-          ? communityMap?.businesses
-          : businessesResult.value;
-        if (!businesses) throw businessesResult.reason ?? mapResult.reason;
+        if (businessesFailed) {
+          const fallbackProfile = profileResult.status === 'fulfilled' && profileResult.value
+            ? withBusinessStats(profileResult.value, fallbackData.businesses)
+            : resolveCommunityProfile(fallbackData.businesses, communityMap?.communityGeoJson ?? null);
+          setState({
+            status: 'error',
+            data: {
+              ...fallbackData,
+              profile: fallbackProfile,
+              communityGeoJson: communityMap?.communityGeoJson ?? null,
+            },
+            error: businessesResult.reason,
+            issue: businessesResult.reason?.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api',
+            usingFallback: true,
+          });
+          return;
+        }
+        // An empty successful response is authoritative. Never replace it with
+        // demo rows merely to keep markers or filter chips on screen.
+        const businesses = businessesResult.value;
 
         const areasFailed = mapResult.status === 'rejected';
         const profileFailed = profileResult.status === 'rejected' || !profileResult.value;
@@ -101,7 +133,9 @@ export function useCommunityData(area) {
             businesses,
             profile,
             // Counting the records we did load keeps every filter chip usable.
-            categories: categoriesFailed
+            categories: businesses.length === 0
+              ? []
+              : categoriesFailed
               ? countBusinessesByCategory(businesses)
               : categoriesResult.value,
             transit: [],

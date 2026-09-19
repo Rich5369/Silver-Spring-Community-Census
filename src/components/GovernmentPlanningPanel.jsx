@@ -7,6 +7,13 @@ function GovernmentPlanningPanel({ summary, trends, serviceRequests }) {
     .slice(0, 4);
   const categories = studyArea.business_landscape?.categories ?? [];
   const categoryMax = Math.max(...categories.map((item) => item.count), 1);
+  // These bars plot a single value per year. A range series (a median, which
+  // cannot be summed across tracts) carries low/high instead and is shown in
+  // the Planning Trends panel, which can draw a band.
+  const barSeries = (trends?.series ?? []).filter(
+    (series) => series.basis !== 'range'
+      && (series.points ?? []).every((point) => Number.isFinite(point.value)),
+  );
 
   return (
     <section className="government-panel" aria-labelledby="government-panel-title">
@@ -73,10 +80,10 @@ function GovernmentPlanningPanel({ summary, trends, serviceRequests }) {
           )}
         </div>
       )}
-      {trends?.series?.some((item) => item.points?.length > 1) && (
+      {barSeries.some((item) => item.points?.length > 1) && (
         <section className="government-trends" aria-labelledby="government-trends-title">
           <h4 id="government-trends-title">Observed ACS change</h4>
-          {trends.series.map((series) => {
+          {barSeries.map((series) => {
             const points = series.points ?? [];
             if (points.length < 2) return null;
             const values = points.map((point) => point.value);
