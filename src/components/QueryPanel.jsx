@@ -1,9 +1,10 @@
-import { businessFilters } from '../services/businessQuery';
+import { businessFilters, describeResultCount } from '../services/businessQuery';
 
 function QueryPanel({
   activeFilter,
   searchTerm,
   resultCount,
+  totalCount = 0,
   onFilterChange,
   onSearchChange,
   onClear,
@@ -35,7 +36,7 @@ function QueryPanel({
         <div className="filter-summary">
           <span className="filter-label" id="business-filter-label">Filter businesses</span>
           <output className="result-count" aria-live="polite">
-            {resultCount} {resultCount === 1 ? 'result' : 'results'}
+            {describeResultCount(resultCount, totalCount)}
           </output>
         </div>
         <div className="filter-list" aria-label="Business categories">
@@ -75,6 +76,7 @@ function QueryPanel({
           {dataStatus === 'partial' && dataIssue !== 'malformed'
             && 'Some data is unavailable — available sections remain active.'}
           {dataStatus === 'success' && usingFallback && 'Demo data mode — no backend URL configured.'}
+          {dataStatus === 'success' && !usingFallback && 'Connected to stored business data. Area demo statistics are labeled separately.'}
         </p>
       </div>
     </section>

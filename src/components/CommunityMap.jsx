@@ -4,8 +4,12 @@ import MapDataLayers from './MapDataLayers';
 import MapLayersControl from './MapLayersControl';
 import { sanitizeGeoJsonFeatureCollection } from '../services/geoJsonAdapter';
 
-function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, resetKey }) {
+function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, resetKey, isVisible }) {
   const map = useMap();
+  useEffect(() => {
+    if (!isVisible) { map.stop(); map.closePopup(); }
+    else map.invalidateSize();
+  }, [isVisible, map]);
 
   useEffect(() => {
     map.setView(center, zoom);
@@ -23,7 +27,9 @@ function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, reset
 
   useEffect(() => {
     const container = map.getContainer();
-    const observer = new ResizeObserver(() => map.invalidateSize());
+    const observer = new ResizeObserver(() => {
+      if (container.clientWidth && container.clientHeight) map.invalidateSize();
+    });
 
     observer.observe(container);
     map.invalidateSize();
@@ -51,7 +57,7 @@ function LocationMarker({ location, onSelect }) {
 
     element.setAttribute('tabindex', '0');
     element.setAttribute('role', 'button');
-    element.setAttribute('aria-label', `View ${location.name}`);
+    element.setAttribute('aria-label', `${location.name} — focus area for this project. Select for details.`);
     const openWithKeyboard = (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
@@ -92,12 +98,16 @@ function CommunityMap({
   communityGeoJson = null,
   transitGeoJson = null,
   selectedAreaId = null,
+  selectedBusinessId = null,
+  onBusinessSelect,
   onAreaSelect,
   onDefaultAreaSelect,
   showEmptyResults = false,
   emptyResultsMessage = 'No business records are available.',
   resetKey = 0,
   exploreKey = 0,
+  businessFocus = null,
+  isVisible = true,
 }) {
   const [layerVisibility, setLayerVisibility] = useState({
     businesses: true,
@@ -122,6 +132,9 @@ function CommunityMap({
       setLayerVisibility((current) => ({ ...current, businesses: true }));
     }
   }, [exploreKey]);
+  useEffect(() => {
+    if (businessFocus) setLayerVisibility((current) => ({ ...current, businesses: true }));
+  }, [businessFocus]);
   const selectArea = (area) => {
     onAreaSelect?.(area);
   };
@@ -134,8 +147,9 @@ function CommunityMap({
       aria-describedby="map-accessibility-description"
     >
       <p className="visually-hidden" id="map-accessibility-description">
-        Use the map controls to zoom and pan. Fenton Village and available business information
-        are also summarized in the Community Insights panel.
+        Markers can be reached with the Tab key and opened with Enter or Space. If the map is
+        hard to navigate, switch to the List view to read every matching business as text, then
+        use View on map to move the map to it and open its details.
       </p>
       <MapContainer
         center={center}
@@ -156,15 +170,20 @@ function CommunityMap({
           />
         ))}
         <MapDataLayers
+          businessFocus={businessFocus}
           visibility={layerVisibility}
           businesses={businesses}
           evidenceSources={evidenceSources}
           communityGeoJson={safeCommunityGeoJson}
           transitGeoJson={transitGeoJson}
           selectedAreaId={selectedAreaId}
+          selectedBusinessId={selectedBusinessId}
+          onBusinessSelect={onBusinessSelect}
+          isVisible={isVisible}
           onAreaSelect={selectArea}
         />
         <MapController
+          isVisible={isVisible}
           center={center}
           zoom={zoom}
           focusCenter={focusCenter}
@@ -191,6 +210,33 @@ function CommunityMap({
           <span>{emptyResultsMessage}</span>
         </div>
       )}
+      <section className="map-legend" aria-labelledby="map-legend-title">
+        <h3 id="map-legend-title">What the markers mean</h3>
+        <ul>
+          <li>
+            <i className="legend-focus" aria-hidden="true" />
+            <span><strong>Large orange dot</strong> — Fenton Village, the focus area for this project</span>
+          </li>
+          {layerVisibility.businesses && businesses.length > 0 && (
+            <>
+              <li>
+                <i className="legend-business" aria-hidden="true" />
+                <span><strong>Small green dot</strong> — a business. Select it for name, category and address</span>
+              </li>
+              <li>
+                <i className="legend-selected" aria-hidden="true" />
+                <span><strong>Green dot with a dark ring</strong> — the business you selected</span>
+              </li>
+            </>
+          )}
+          {layerVisibility.community && layerAvailability.community && (
+            <li>
+              <i className="legend-area" aria-hidden="true" />
+              <span><strong>Shaded outline</strong> — census tract boundary</span>
+            </li>
+          )}
+        </ul>
+      </section>
     </div>
   );
 }

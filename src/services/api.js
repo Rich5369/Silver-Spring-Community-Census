@@ -1,14 +1,15 @@
+import { fentonVillageInsights } from '../data/communityInsights';
 import { mockBusinesses } from '../data/mockBusinesses';
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 export const isApiConfigured = Boolean(configuredBaseUrl);
 const API_BASE_URL = configuredBaseUrl?.replace(/\/$/, '') ?? '';
 
-// The frontend consumes the versioned API contract.
+// Keep finalized backend paths centralized so versioning remains explicit.
 const ENDPOINTS = {
   businesses: '/api/v1/businesses',
-  communityProfile: '/api/v1/insights/fenton-village',
   communityMap: '/api/v1/map/community',
+  communityProfile: '/api/v1/insights/fenton-village',
 };
 
 async function requestJson(path, options = {}) {
@@ -56,12 +57,54 @@ export function normalizeBusinesses(payload) {
       longitude,
       address: String(business.address || 'Address not provided'),
       source: String(business.source || 'Source not provided'),
+      sourceUrl: String(business.source_url || business.sourceUrl || ''),
+      dataset: String(business.dataset || 'Business record'),
       sourceIds: Array.isArray(business.sourceIds) ? business.sourceIds.map(String) : [],
     }];
   });
 
   if (normalized.length !== records.length) throw malformedResponse('businesses');
   return normalized;
+}
+
+function normalizeMapBusinesses(featureCollection) {
+  if (featureCollection?.type !== 'FeatureCollection' || !Array.isArray(featureCollection.features)) {
+    throw malformedResponse('community map businesses');
+  }
+
+  const records = featureCollection.features.map((feature) => {
+    const coordinates = feature?.geometry?.coordinates;
+    const properties = feature?.properties ?? {};
+    const business = properties.business ?? {};
+
+    return {
+      id: business.id ?? feature?.id,
+      name: properties.name,
+      category: business.category,
+      latitude: Array.isArray(coordinates) ? coordinates[1] : null,
+      longitude: Array.isArray(coordinates) ? coordinates[0] : null,
+      address: business.address,
+      source: business.source,
+      source_url: business.source_url,
+      dataset: 'OpenStreetMap points of interest',
+    };
+  });
+
+  return normalizeBusinesses({ businesses: records });
+}
+
+export function normalizeCommunityMap(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw malformedResponse('community map');
+  }
+  if (payload.areas?.type !== 'FeatureCollection' || !Array.isArray(payload.areas.features)) {
+    throw malformedResponse('community map areas');
+  }
+
+  return {
+    businesses: normalizeMapBusinesses(payload.businesses),
+    communityGeoJson: payload.areas,
+  };
 }
 
 const formatInteger = (value) => (
@@ -81,11 +124,9 @@ const formatCurrency = (value) => (
 );
 
 export function normalizeCommunityProfile(payload, requestedArea = 'Selected community') {
-  // The v1 insights response is the authoritative, evidence-backed headline
-  // payload. Keep the UI's small profile shape as a view-model adapter.
   if (payload?.community_snapshot) {
     const values = Object.fromEntries(payload.community_snapshot.map((item) => [item.key, item]));
-    const statValue = (key) => values[key]?.value ?? null;
+    const value = (key) => values[key]?.value ?? null;
     const sources = payload.community_snapshot.flatMap((item) => item.evidence ?? []).map((evidence, index) => ({
       id: `${evidence.organization}-${evidence.dataset}-${index}`,
       organization: evidence.organization,
@@ -100,8 +141,8 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       dataStatus: 'Connected ACS and OpenStreetMap data',
       summary: payload.study_area?.method || 'Deterministic summary of stored community data.',
       statistics: {
-        population: statValue('total_population'),
-        medianHouseholdIncome: statValue('median_household_income'),
+        population: value('total_population'),
+        medianHouseholdIncome: value('median_household_income'),
         businessCount: payload.business_landscape?.total_businesses ?? null,
       },
       sources,
@@ -158,7 +199,7 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       stat('restaurants', 'Restaurants', formatInteger(finiteNumber(statistics.restaurantCount))),
       stat('retail', 'Retail', formatInteger(finiteNumber(statistics.retailCount))),
     ],
-    sources: Array.isArray(profile.sources) ? profile.sources : [],
+    sources: [],
   };
 }
 
@@ -186,36 +227,14 @@ export async function getBusinesses(options = {}) {
   return normalizeBusinesses(await requestJson(ENDPOINTS.businesses, options));
 }
 
+export async function getCommunityMap(options = {}) {
+  if (!isApiConfigured) {
+    return { businesses: mockBusinesses, communityGeoJson: null };
+  }
+  return normalizeCommunityMap(await requestJson(ENDPOINTS.communityMap, options));
+}
+
 export async function getCommunityProfile(area, options = {}) {
   if (!isApiConfigured) return null;
   return normalizeCommunityProfile(await requestJson(ENDPOINTS.communityProfile, options), area);
-}
-
-export async function getSources(area, options = {}) {
-  if (!isApiConfigured) return [];
-  return [];
-}
-
-export async function getCommunityMap(options = {}) {
-  if (!isApiConfigured) return { businesses: [], communityGeoJson: null };
-  const payload = await requestJson(ENDPOINTS.communityMap, options);
-  const features = payload?.businesses?.features;
-  if (!Array.isArray(features) || !payload?.areas) throw malformedResponse('community map');
-  return {
-    businesses: normalizeBusinesses(features.map(({ properties = {}, geometry = {} }) => ({
-      ...properties,
-      latitude: geometry.coordinates?.[1],
-      longitude: geometry.coordinates?.[0],
-    }))),
-    communityGeoJson: payload.areas,
-  };
-}
-
-export async function getTransit(options = {}) {
-  if (!isApiConfigured) return [];
-  const payload = await requestJson(ENDPOINTS.transit, options);
-  const records = Array.isArray(payload) ? payload : payload?.transit;
-  if (payload == null) return [];
-  if (!Array.isArray(records)) throw malformedResponse('transit');
-  return records;
 }
