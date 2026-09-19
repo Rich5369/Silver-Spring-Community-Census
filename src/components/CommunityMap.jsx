@@ -5,7 +5,7 @@ import MapLayersControl from './MapLayersControl';
 import { sanitizeGeoJsonFeatureCollection } from '../services/geoJsonAdapter';
 import { areAllDemoBusinesses } from '../services/provenance';
 
-function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, resetKey, isVisible }) {
+function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, resetKey, isVisible, layoutKey }) {
   const map = useMap();
   useEffect(() => {
     if (!isVisible) { map.stop(); map.closePopup(); }
@@ -37,6 +37,15 @@ function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, reset
 
     return () => observer.disconnect();
   }, [map]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => map.invalidateSize({ animate: false, pan: false }));
+    const timer = setTimeout(() => map.invalidateSize({ animate: false, pan: false }), 180);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, [layoutKey, map]);
 
   return null;
 }
@@ -114,6 +123,7 @@ function CommunityMap({
   exploreKey = 0,
   businessFocus = null,
   isVisible = true,
+  layoutKey = false,
 }) {
   const [layerVisibility, setLayerVisibility] = useState({
     businesses: true,
@@ -207,6 +217,7 @@ function CommunityMap({
           focusZoom={focusZoom}
           exploreKey={exploreKey}
           resetKey={resetKey}
+          layoutKey={layoutKey}
         />
       </MapContainer>
       <MapLayersControl
