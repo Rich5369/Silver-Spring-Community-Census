@@ -5,13 +5,10 @@ const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 export const isApiConfigured = Boolean(configuredBaseUrl);
 const API_BASE_URL = configuredBaseUrl?.replace(/\/$/, '') ?? '';
 
-// Tentative paths are centralized here. Update only this object when the backend team
-// finalizes endpoint names; these are a frontend contract proposal, not live production APIs.
+// Keep finalized backend paths centralized so versioning remains explicit.
 const ENDPOINTS = {
-  businesses: '/businesses',
-  communityProfile: (area) => `/community-profiles/${encodeURIComponent(area)}`,
-  sources: (area) => `/sources?area=${encodeURIComponent(area)}`,
-  transit: '/transit',
+  businesses: '/api/v1/businesses',
+  communityMap: '/api/v1/map/community',
 };
 
 async function requestJson(path, options = {}) {
@@ -59,12 +56,54 @@ export function normalizeBusinesses(payload) {
       longitude,
       address: String(business.address || 'Address not provided'),
       source: String(business.source || 'Source not provided'),
+      sourceUrl: String(business.source_url || business.sourceUrl || ''),
+      dataset: String(business.dataset || 'Business record'),
       sourceIds: Array.isArray(business.sourceIds) ? business.sourceIds.map(String) : [],
     }];
   });
 
   if (normalized.length !== records.length) throw malformedResponse('businesses');
   return normalized;
+}
+
+function normalizeMapBusinesses(featureCollection) {
+  if (featureCollection?.type !== 'FeatureCollection' || !Array.isArray(featureCollection.features)) {
+    throw malformedResponse('community map businesses');
+  }
+
+  const records = featureCollection.features.map((feature) => {
+    const coordinates = feature?.geometry?.coordinates;
+    const properties = feature?.properties ?? {};
+    const business = properties.business ?? {};
+
+    return {
+      id: business.id ?? feature?.id,
+      name: properties.name,
+      category: business.category,
+      latitude: Array.isArray(coordinates) ? coordinates[1] : null,
+      longitude: Array.isArray(coordinates) ? coordinates[0] : null,
+      address: business.address,
+      source: business.source,
+      source_url: business.source_url,
+      dataset: 'OpenStreetMap points of interest',
+    };
+  });
+
+  return normalizeBusinesses({ businesses: records });
+}
+
+export function normalizeCommunityMap(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw malformedResponse('community map');
+  }
+  if (payload.areas?.type !== 'FeatureCollection' || !Array.isArray(payload.areas.features)) {
+    throw malformedResponse('community map areas');
+  }
+
+  return {
+    businesses: normalizeMapBusinesses(payload.businesses),
+    communityGeoJson: payload.areas,
+  };
 }
 
 const formatInteger = (value) => (
@@ -163,21 +202,9 @@ export async function getBusinesses(options = {}) {
   return normalizeBusinesses(await requestJson(ENDPOINTS.businesses, options));
 }
 
-export async function getCommunityProfile(area, options = {}) {
-  if (!isApiConfigured) return fentonVillageInsights;
-  return normalizeCommunityProfile(await requestJson(ENDPOINTS.communityProfile(area), options), area);
-}
-
-export async function getSources(area, options = {}) {
-  if (!isApiConfigured) return fentonVillageInsights.sources;
-  return normalizeSources(await requestJson(ENDPOINTS.sources(area), options));
-}
-
-export async function getTransit(options = {}) {
-  if (!isApiConfigured) return [];
-  const payload = await requestJson(ENDPOINTS.transit, options);
-  const records = Array.isArray(payload) ? payload : payload?.transit;
-  if (payload == null) return [];
-  if (!Array.isArray(records)) throw malformedResponse('transit');
-  return records;
+export async function getCommunityMap(options = {}) {
+  if (!isApiConfigured) {
+    return { businesses: mockBusinesses, communityGeoJson: null };
+  }
+  return normalizeCommunityMap(await requestJson(ENDPOINTS.communityMap, options));
 }
