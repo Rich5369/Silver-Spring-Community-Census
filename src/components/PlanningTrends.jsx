@@ -225,7 +225,7 @@ export default function PlanningTrends({ insights, trends, trendGeography = '' }
     },
   ];
   return (
-    <section className="planning-trends" aria-labelledby={`${baseId}-title`}>
+    <section className="planning-trends" id="planning-trends" aria-labelledby={`${baseId}-title`}>
       <div className="planning-trends-heading">
         <div><p className="eyebrow">For city planners</p><h2 id={`${baseId}-title`}>Planning Trends</h2></div>
         <p><strong>{geography}</strong><span>Montgomery County, Maryland</span></p>
