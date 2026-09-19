@@ -354,6 +354,16 @@ METRIC_SPECS: tuple[MetricSpec, ...] = (
         denominator_id="B08301_001E",
     ),
     # --- Education ----------------------------------------------------------
+    # The table base is stored as its own metric so that an aggregate share
+    # across tracts can use the correct denominator. Total population is not
+    # a valid denominator here: B15003 counts only adults aged 25 and over.
+    MetricSpec(
+        metric_key="adults_25_plus",
+        description="Population aged 25 and over (educational attainment base)",
+        unit="people",
+        kind="direct",
+        variable_ids=("B15003_001E",),
+    ),
     MetricSpec(
         metric_key="bachelors_or_higher",
         description="Adults aged 25 and over with a bachelor's degree or higher",
@@ -370,6 +380,16 @@ METRIC_SPECS: tuple[MetricSpec, ...] = (
         denominator_id="B15003_001E",
     ),
     # --- Language -----------------------------------------------------------
+    # C16002's household universe differs from B25003's occupied housing
+    # units, so the language base is stored separately rather than reusing
+    # the tenure total as a denominator.
+    MetricSpec(
+        metric_key="language_households_total",
+        description="Total households (household-language base)",
+        unit="households",
+        kind="direct",
+        variable_ids=("C16002_001E",),
+    ),
     MetricSpec(
         metric_key="multilingual_households",
         description="Households speaking a language other than English at home",
