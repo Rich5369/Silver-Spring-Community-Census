@@ -11,6 +11,27 @@ npm run dev
 
 The frontend is a lightweight React + Vite application. UI components live in `src/components`, temporary display content in `src/data`, API integration helpers in `src/services`, and global presentation styles in `src/styles`.
 
+### Vercel deployment
+
+Import the repository into Vercel with the project root set to the repository
+root. `vercel.json` supplies the Vite build and SPA fallback. Add this Vercel
+environment variable for the deployed backend:
+
+```text
+VITE_API_BASE_URL=https://YOUR-BACKEND-HOST
+```
+
+The backend must add the exact Vercel deployment origin to its
+`CORS_ORIGINS`, for example:
+
+```text
+CORS_ORIGINS=https://silver-spring-community-census.vercel.app
+```
+
+After deployment, verify `/api/v1/map/community`, `/api/v1/areas?with_boundary_only=true`,
+and `POST /api/v1/query` from the browser. The frontend no longer treats a
+missing API response as live data.
+
 ## Backend Integration Contract
 
 Set `VITE_API_BASE_URL` to the backend origin, without a trailing slash. When it is omitted, the frontend uses the same-origin `/api` contract (and the Vite development proxy locally). If the API cannot be reached, the UI reports the connection failure instead of presenting the result as live data.
