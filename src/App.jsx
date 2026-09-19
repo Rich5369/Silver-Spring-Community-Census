@@ -8,7 +8,7 @@ import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
 import { buildBusinessFilters, queryBusinesses } from './services/businessQuery';
 import { useCommunityData } from './services/useCommunityData';
-import { askCommunityQuestion, getGovernmentSummary } from './services/api';
+import { askCommunityQuestion, getGovernmentSummary, getGovernmentTrends } from './services/api';
 
 function App() {
   const { data, status, issue, usingFallback } = useCommunityData();
@@ -19,6 +19,7 @@ function App() {
   const [question, setQuestion] = useState('');
   const [queryState, setQueryState] = useState({ status: 'idle', result: null, error: null });
   const [governmentSummary, setGovernmentSummary] = useState(null);
+  const [governmentTrends, setGovernmentTrends] = useState(null);
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
   const requestVersion = useRef(0);
   const selectArea = (area) => {
@@ -32,6 +33,9 @@ function App() {
     getGovernmentSummary()
       .then((summary) => { if (active) setGovernmentSummary(summary); })
       .catch(() => { if (active) setGovernmentSummary(null); });
+    getGovernmentTrends()
+      .then((trends) => { if (active) setGovernmentTrends(trends); })
+      .catch(() => { if (active) setGovernmentTrends(null); });
     return () => { active = false; };
   }, []);
   const queryBusinessIds = queryState.result?.parsed?.intent === 'nearby_businesses'
@@ -131,7 +135,7 @@ function App() {
         <details className="exploration-tools">
           <summary>Business Opportunity Explorer and planning context</summary>
           <OpportunityExplorer insights={data.profile} businesses={data.businesses} />
-          <GovernmentPlanningPanel summary={governmentSummary} />
+          <GovernmentPlanningPanel summary={governmentSummary} trends={governmentTrends} />
         </details>
       </main>
     </div>

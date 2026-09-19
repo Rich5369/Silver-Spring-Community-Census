@@ -56,6 +56,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #91d0a8; box-shadow: 0 0 0 4px rgb(145 208 168 / 12%); }
 
 .workspace { padding: 22px clamp(24px, 4vw, 64px) 38px; }
+.main-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr); align-items: start; gap: 18px; }
+.right-rail { display: grid; gap: 14px; min-width: 0; max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 2px; }
+.right-rail .ask-community, .right-rail .query-panel, .right-rail .community-context { margin-bottom: 0; }
 .query-panel { display: flex; align-items: end; gap: 24px; margin-bottom: 24px; padding: 14px 16px 16px; border: 1px solid #d4ddd6; border-radius: 9px; background: #f8faf8; box-shadow: 0 2px 10px rgb(31 49 39 / 4%); }
 .ask-community { margin-bottom: 14px; padding: 16px; border: 1px solid #b9d2c1; border-radius: 9px; background: #f3f8f4; }
 .ask-community-heading h2 { margin: 4px 0 0; color: #203c2f; font-size: 17px; }
@@ -241,6 +244,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .government-bar-track { height: 7px; margin-top: 3px; overflow: hidden; border-radius: 99px; background: #dce8df; }
 .government-bar-track span { display: block; height: 100%; border-radius: inherit; background: #267052; }
 .government-trend-note { margin: 14px 0 0; color: #6c776f; font-size: 10px; line-height: 1.45; }
+.government-trends { margin-top: 16px; }
+.trend-series { margin-top: 10px; }
+.trend-points { display: flex; align-items: end; gap: 12px; height: 94px; padding: 8px 4px 0; border-bottom: 1px solid #dce8df; }
+.trend-point { display: flex; min-width: 38px; height: 86px; flex-direction: column; align-items: center; justify-content: end; gap: 3px; }
+.trend-point span { display: block; width: 22px; min-height: 24px; border-radius: 4px 4px 0 0; background: #397254; }
+.trend-point small { color: #6c776f; font-size: 9px; }
 .opportunity-explorer h3 { margin: 4px 0 0; color: #203c2f; font-size: 15px; }
 .opportunity-intro, .opportunity-evidence { margin: 8px 0 0; color: #5f7067; font-size: 11px; line-height: 1.45; }
 .opportunity-controls { display: grid; gap: 5px; margin-top: 12px; color: #31493d; font-size: 11px; font-weight: 700; }
