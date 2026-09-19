@@ -157,28 +157,73 @@ const formatCurrency = (value) => (
     }).format(value)
 );
 
+// The snapshot carries fifteen metrics and the panel shows a headline set of
+// them beside the business counts. Add a key here to surface another; one the
+// backend marks unavailable is skipped rather than rendered as an empty card.
+// `range` keys read from payload.ranges - those are values the backend declines
+// to collapse into a single number, such as a district median household income,
+// which cannot be derived from tract medians because medians are not additive.
+const HEADLINE_COMMUNITY_METRICS = [
+  { source: 'metric', key: 'total_population' },
+  { source: 'range', key: 'median_household_income' },
+  { source: 'metric', key: 'multilingual_household_share' },
+];
+
+const formatMetricValue = (value, unit) => {
+  if (value === null || value === undefined) return 'Data unavailable';
+  if (unit === 'percent') {
+    return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(value)}%`;
+  }
+  if (unit === 'usd' || unit === 'dollars') return formatCurrency(value);
+  return formatInteger(value);
+};
+
 export function normalizeCommunityProfile(payload, requestedArea = 'Selected community') {
   if (payload?.community_snapshot) {
     const values = Object.fromEntries(payload.community_snapshot.map((item) => [item.key, item]));
-    const value = (key) => values[key]?.value ?? null;
-    const sources = payload.community_snapshot.flatMap((item) => item.evidence ?? []).map((evidence, index) => ({
-      id: `${evidence.organization}-${evidence.dataset}-${index}`,
-      organization: evidence.organization,
-      dataset: evidence.dataset,
-      year: evidence.dataset_year ?? '',
-      geography: payload.study_area?.name ?? requestedArea,
-      table: evidence.source_variable ?? '',
-      url: evidence.source_url,
-    }));
+    const ranges = Object.fromEntries((payload.ranges ?? []).map((item) => [item.key, item]));
+
+    // Evidence is keyed by what it cites rather than by its position in the
+    // payload, so the many metrics drawn from one ACS release collapse into a
+    // single source card and each stat can point at exactly the records behind
+    // it. Indexing by position produced a near-duplicate source per metric.
+    const sources = [];
+    const cite = (item) => (item?.evidence ?? []).map((evidence) => {
+      const id = `${evidence.organization}-${evidence.dataset}-${evidence.source_variable ?? 'summary'}`;
+      if (!sources.some((source) => source.id === id)) {
+        sources.push({
+          id,
+          organization: evidence.organization,
+          dataset: evidence.dataset,
+          year: evidence.dataset_year ?? '',
+          geography: payload.study_area?.name ?? requestedArea,
+          table: evidence.source_variable ?? '',
+          url: evidence.source_url,
+        });
+      }
+      return id;
+    });
+
+    // These are the cards the panel renders. They were previously returned under
+    // a `statistics` object that nothing read, so every Census value the backend
+    // served was dropped before it reached the UI.
+    const stats = HEADLINE_COMMUNITY_METRICS.flatMap(({ source, key }) => {
+      const item = source === 'range' ? ranges[key] : values[key];
+      if (!item?.available) return [];
+      const value = source === 'range'
+        ? `${formatMetricValue(item.minimum, item.unit)} – ${formatMetricValue(item.maximum, item.unit)}`
+        : formatMetricValue(item.value, item.unit);
+      const note = source === 'range'
+        ? `Range across ${item.coverage?.tracts_with_data ?? 0} tracts`
+        : 'US Census Bureau ACS';
+      return [{ id: key, label: item.label, value, note, sourceIds: cite(item) }];
+    });
+
     return {
       areaName: payload.study_area?.name || requestedArea,
       dataStatus: 'Connected ACS and OpenStreetMap data',
       summary: payload.study_area?.method || 'Deterministic summary of stored community data.',
-      statistics: {
-        population: value('total_population'),
-        medianHouseholdIncome: value('median_household_income'),
-        businessCount: payload.business_landscape?.total_businesses ?? null,
-      },
+      stats,
       opportunityMetrics: Object.fromEntries(
         ['young_adult_share', 'commute_active_share', 'renter_share'].flatMap((key) => {
           const item = values[key];
