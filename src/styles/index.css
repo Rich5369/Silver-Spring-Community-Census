@@ -179,6 +179,15 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .section-heading > span { color: #745f39; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
 .source-intro { margin: 9px 0 0; color: #728078; font-size: 11px; line-height: 1.45; }
 .source-list { margin-top: 10px; }
+.opportunity-explorer { margin-top: 20px; padding: 16px; border: 1px solid #cadbcf; border-radius: 8px; background: #f0f6f1; }
+.opportunity-explorer h3 { margin: 4px 0 0; color: #203c2f; font-size: 15px; }
+.opportunity-intro, .opportunity-evidence { margin: 8px 0 0; color: #5f7067; font-size: 11px; line-height: 1.45; }
+.opportunity-controls { display: grid; gap: 5px; margin-top: 12px; color: #31493d; font-size: 11px; font-weight: 700; }
+.opportunity-controls select { padding: 7px; border: 1px solid #b9cbbd; border-radius: 5px; color: #203c2f; background: #fff; }
+.opportunity-facts { display: grid; gap: 7px; margin: 13px 0 0; }
+.opportunity-facts div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #d8e5da; padding-bottom: 5px; }
+.opportunity-facts dt { color: #52685b; font-size: 11px; }
+.opportunity-facts dd { margin: 0; color: #1e4836; font-size: 12px; font-weight: 800; }
 .source-card { padding: 12px; border-left: 3px solid #91a99b; border-radius: 0 6px 6px 0; background: #eef3ef; }
 .source-card > strong, .source-card > span { display: block; }
 .source-card > strong { color: #2a533f; font-size: 12px; }

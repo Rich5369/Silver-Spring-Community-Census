@@ -7,6 +7,7 @@ import { countBusinessesByCategory } from './businessQuery';
 import {
   getBusinessCategories,
   getCommunityMap,
+  getCommunityProfile,
   isApiConfigured,
 } from './api';
 
@@ -32,7 +33,7 @@ const fallbackData = {
   communityGeoJson: null,
 };
 
-export function useCommunityData() {
+export function useCommunityData(area) {
   const [state, setState] = useState({
     status: isApiConfigured ? 'loading' : 'success',
     data: fallbackData,
@@ -48,26 +49,41 @@ export function useCommunityData() {
     const options = { signal: controller.signal };
     setState((current) => ({ ...current, status: 'loading', error: null, issue: null }));
 
-    // The map is required; the category vocabulary is an enhancement. Settle
-    // both so a categories outage degrades the filter chips rather than
-    // dropping the whole app back to demo data.
-    Promise.allSettled([getCommunityMap(options), getBusinessCategories(options)])
-      .then(([mapResult, categoriesResult]) => {
+    // The map is required. The backend profile and the category vocabulary are
+    // enhancements, so settle all three: losing either degrades one part of the
+    // UI rather than dropping the whole app back to demo data.
+    Promise.allSettled([
+      getCommunityMap(options),
+      getCommunityProfile(area, options),
+      getBusinessCategories(options),
+    ])
+      .then(([mapResult, profileResult, categoriesResult]) => {
         if (controller.signal.aborted) return;
         if (mapResult.status === 'rejected') throw mapResult.reason;
 
         const communityMap = mapResult.value;
+        const profileFailed = profileResult.status === 'rejected' || !profileResult.value;
         const categoriesFailed = categoriesResult.status === 'rejected';
-        const categoriesError = categoriesFailed ? categoriesResult.reason : null;
+        const degradedError = (profileResult.status === 'rejected' ? profileResult.reason : null)
+          ?? (categoriesFailed ? categoriesResult.reason : null);
+
+        // The backend serves the evidence-backed profile, so it is authoritative.
+        // Deriving one from the tract under Fenton Village is only the fallback
+        // for when that endpoint is unavailable. Either way the business counts
+        // come from the records actually on the map, so the snapshot cannot
+        // contradict the map beside it.
+        const profile = profileFailed
+          ? resolveCommunityProfile(communityMap.businesses, communityMap.communityGeoJson)
+          : withBusinessStats(
+            { ...profileResult.value, sources: profileResult.value.sources ?? [] },
+            communityMap.businesses,
+          );
 
         setState({
-          status: categoriesFailed ? 'partial' : 'success',
+          status: profileFailed || categoriesFailed ? 'partial' : 'success',
           data: {
             businesses: communityMap.businesses,
-            profile: resolveCommunityProfile(
-              communityMap.businesses,
-              communityMap.communityGeoJson,
-            ),
+            profile,
             // Counting the records we did load keeps every filter chip usable.
             categories: categoriesFailed
               ? countBusinessesByCategory(communityMap.businesses)
@@ -75,9 +91,9 @@ export function useCommunityData() {
             transit: [],
             communityGeoJson: communityMap.communityGeoJson,
           },
-          error: categoriesError,
-          issue: categoriesFailed
-            ? (categoriesError?.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api')
+          error: degradedError,
+          issue: degradedError
+            ? (degradedError.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api')
             : null,
           usingFallback: false,
         });
@@ -95,7 +111,7 @@ export function useCommunityData() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [area]);
 
   return state;
 }
