@@ -26,6 +26,7 @@ function App() {
     ? (queryState.result.facilities ?? []) : [];
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
   const requestVersion = useRef(0);
+  const businessToolsRef = useRef(null);
   const selectArea = (area) => {
     requestVersion.current += 1;
     setSelectedGeoJsonArea(area);
@@ -72,17 +73,17 @@ function App() {
     setFentonExploreKey((key) => key + 1);
   };
 
-  const scrollToExplorer = () => {
+  const scrollToSection = (id) => {
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    document.getElementById('community-explorer')?.scrollIntoView({
+    document.getElementById(id)?.scrollIntoView({
       behavior: reduceMotion ? 'auto' : 'smooth',
       block: 'start',
     });
   };
 
-  const exploreFentonFromHome = () => {
-    exploreFentonVillage();
-    scrollToExplorer();
+  const openBusinessExplorer = () => {
+    if (businessToolsRef.current) businessToolsRef.current.open = true;
+    scrollToSection('business-explorer');
   };
 
   const askQuestion = async () => {
@@ -109,8 +110,16 @@ function App() {
     <div className="app-shell">
       <Header />
       <main>
-        <HomeIntro onExplore={scrollToExplorer} onExploreFenton={exploreFentonFromHome} />
+        <HomeIntro
+          onExplore={() => scrollToSection('community-explorer')}
+          onViewTrends={() => scrollToSection('planning-trends')}
+        />
         <div className="workspace" id="community-explorer">
+          <div className="current-area" aria-live="polite">
+            <span>Currently exploring</span>
+            <strong>{selectedInsights.areaName}</strong>
+            {selectedGeoJsonArea && <small>Montgomery County, Maryland</small>}
+          </div>
           <QueryPanel
             activeFilter={activeFilter}
             filters={filters}
@@ -158,7 +167,11 @@ function App() {
             trends={governmentTrends}
             trendGeography={governmentSummary?.study_area?.study_area?.name}
           />
-          <details className="exploration-tools">
+          <div className="business-explorer-callout">
+            <p><strong>Exploring a business opportunity?</strong><span>Compare mapped competition with available community context.</span></p>
+            <button className="secondary-button" type="button" onClick={openBusinessExplorer}>Open Business Opportunity Explorer</button>
+          </div>
+          <details className="exploration-tools" id="business-explorer" ref={businessToolsRef}>
             <summary>Business Opportunity Explorer and planning context</summary>
             <OpportunityExplorer insights={data.profile} businesses={data.businesses} />
             <GovernmentPlanningPanel summary={governmentSummary} trends={governmentTrends} />

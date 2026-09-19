@@ -2,15 +2,14 @@ import EvidenceDetails from './EvidenceDetails';
 
 const STARTER_QUESTIONS = [
   'Give me an overview of Fenton Village',
-  'What is the population of Fenton Village?',
-  'How do people commute to work?',
   'How many restaurants are nearby?',
-  'Which business could be successful opening here?',
+  'How do people commute to work?',
+  'What businesses are in this area?',
 ];
 
 function AskCommunity({ question, onQuestionChange, onAsk, status, result, error, areaName, isAreaSelected }) {
   const suggestions = isAreaSelected
-    ? ['Give me an overview of this tract', 'What is the population?', 'What is the median household income?', 'How do people commute to work?']
+    ? ['What is the population here?', 'How do people commute to work?', 'What is the median household income?', 'What share of households rent?']
     : result?.suggestions?.length ? result.suggestions : STARTER_QUESTIONS;
   const sources = (result?.evidence ?? []).map((item, index) => ({
     id: `query-evidence-${index}`,
