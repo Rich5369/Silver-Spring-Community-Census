@@ -85,7 +85,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .eyebrow-dot { display: inline-block; width: 7px; height: 7px; margin: 0 7px 1px 0; border-radius: 50%; background: #67a57e; box-shadow: 0 0 0 4px rgb(103 165 126 / 14%); }
 .site-header .eyebrow { color: #6c6e69; }
 
-.location-label { margin-left: auto; display: flex; align-items: center; gap: 8px; color: #555651; font-size: 13px; }
+.location-label { margin-left: auto; display: flex; align-items: center; gap: 8px; color: #555651; font-size: 13px; white-space: nowrap; }
+.location-flag { width: 24px; height: 15px; flex: 0 0 auto; border: 1px solid rgb(20 20 18 / 22%); border-radius: 2px; transform-origin: left center; animation: flag-breathe 5.5s ease-in-out infinite; }
+.location-short { display: none; }
+@keyframes flag-breathe { 0%, 100% { transform: perspective(40px) rotateY(0deg) translateY(0); } 50% { transform: perspective(40px) rotateY(-7deg) translateY(-1px); } }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #91d0a8; box-shadow: 0 0 0 4px rgb(145 208 168 / 12%); }
 
 .workspace { padding: 22px clamp(24px, 4vw, 64px) 38px; scroll-margin-top: 12px; }
@@ -449,6 +452,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 
 @media (max-width: 600px) {
   .site-header, .workspace { padding-right: 18px; padding-left: 18px; }
+  .site-header { min-height: 64px; gap: 9px; padding-top: 11px; padding-bottom: 11px; }
+  .brand-mark { width: 34px; height: 34px; font-size: 11px; }
+  .brand-copy h1 { font-size: clamp(16px, 5vw, 20px); line-height: 1.05; }
+  .site-header .eyebrow { display: none; }
+  .location-label { padding: 5px 7px; font-size: 10px; }
+  .location-full { display: none; }
+  .location-short { display: inline; }
   .home-intro { padding: 34px 18px 30px; }
   .hero-copy h2 { font-size: clamp(32px, 11vw, 44px); }
   .hero-actions { align-items: stretch; flex-direction: column; }
@@ -462,7 +472,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .current-area { align-items: flex-start; flex-direction: column; gap: 3px; }
   .business-explorer-callout { align-items: stretch; flex-direction: column; }
   .business-explorer-callout button { min-height: 46px; }
-  .location-label { display: none; }
   .business-map-view { height: 400px; }
   .business-map-view.expanded { height: clamp(480px, 68vh, 620px); }
   .map-toolbar { height: auto; min-height: 76px; align-items: flex-start; flex-direction: column; }
@@ -494,6 +503,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  .location-flag { animation: none; }
 }
 
 /* Visual system: a quiet editorial shell around the working civic tools. */

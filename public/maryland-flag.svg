@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 48" role="img" aria-labelledby="title">
+  <title>Maryland flag</title>
+  <path fill="#111" d="M0 0h80v48H0z"/>
+  <path fill="#ffbf00" d="M0 0h40L0 24zm40 24h40L40 48z"/>
+  <path fill="#d11f2e" d="M40 0h40L40 24zM0 24h40v24H0z"/>
+  <path fill="#fff" d="M40 0v48h8V0zM0 20h80v8H0z"/>
+  <path fill="#d11f2e" d="M7 7h8l4 5 4-5h8l-8 9 8 9h-8l-4-5-4 5H7l8-9zM49 27h8l4 5 4-5h8l-8 9 8 9h-8l-4-5-4 5h-8l8-9z"/>
+</svg>
