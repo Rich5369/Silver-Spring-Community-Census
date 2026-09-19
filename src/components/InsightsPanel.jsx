@@ -1,8 +1,10 @@
-import SourceCard from './SourceCard';
+import EvidenceDetails from './EvidenceDetails';
+import ComparisonPanel from './ComparisonPanel';
 import StatCard from './StatCard';
+import AboutData from './AboutData';
 import { fentonVillageInsights } from '../data/communityInsights';
 
-function InsightsPanel({ insights = fentonVillageInsights }) {
+function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] }) {
   const selectedInsights = insights ?? fentonVillageInsights;
   const stats = Array.isArray(selectedInsights.stats) ? selectedInsights.stats : [];
   const sources = Array.isArray(selectedInsights.sources) ? selectedInsights.sources : [];
@@ -11,7 +13,7 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
   return (
     <aside className="insights-panel" aria-labelledby="insights-title">
       <div className="panel-heading">
-        <p className="eyebrow">Selected area</p>
+        <p className="eyebrow">Community insights</p>
         <h2 id="insights-title">{selectedInsights.areaName || 'Selected community'}</h2>
         <p>{selectedInsights.summary || 'Community details are not available yet.'}</p>
         <span className="demo-data-status">
@@ -23,7 +25,11 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
         <h3 id="community-stats-title">Community snapshot</h3>
         <div className="stat-grid">
           {stats.map((stat, index) => (
-            <StatCard key={stat.id || `stat-${index}`} {...stat} />
+            <StatCard
+              key={stat.id || `stat-${index}`}
+              {...stat}
+              sources={sources.filter((source) => stat.sourceIds?.includes(source.id))}
+            />
           ))}
           {stats.length === 0 && <p className="empty-data-message">No statistics available.</p>}
         </div>
@@ -40,12 +46,12 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
             : 'Source records identify the organization, dataset, year, geography, table, and original link.'}
         </p>
         <div className="source-list">
-          {sources.map((source, index) => (
-            <SourceCard key={`${source.organization || 'source'}-${source.dataset || index}`} source={source} />
-          ))}
-          {sources.length === 0 && <p className="empty-data-message">No sources available.</p>}
+          <EvidenceDetails sources={sources} label="Browse all evidence" />
         </div>
       </section>
+
+      <ComparisonPanel areas={comparisonAreas} />
+      <AboutData />
     </aside>
   );
 }

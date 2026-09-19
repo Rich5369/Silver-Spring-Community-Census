@@ -7,9 +7,16 @@ import { queryBusinesses } from './services/businessQuery';
 import { useCommunityData } from './services/useCommunityData';
 
 function App() {
-  const { data, status, usingFallback } = useCommunityData('Fenton Village');
+  const { data, status, issue, usingFallback } = useCommunityData('Fenton Village');
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGeoJsonArea, setSelectedGeoJsonArea] = useState(null);
+  const [fentonExploreKey, setFentonExploreKey] = useState(0);
+  const selectedInsights = selectedGeoJsonArea ?? data.profile;
+  const comparisonAreas = useMemo(
+    () => [data.profile, selectedGeoJsonArea].filter(Boolean),
+    [data.profile, selectedGeoJsonArea],
+  );
   const visibleBusinesses = useMemo(
     () => queryBusinesses({ businesses: data.businesses, filter: activeFilter, searchTerm }),
     [activeFilter, data.businesses, searchTerm],
@@ -18,6 +25,12 @@ function App() {
   const clearFilters = () => {
     setActiveFilter('all');
     setSearchTerm('');
+  };
+
+  const exploreFentonVillage = () => {
+    clearFilters();
+    setSelectedGeoJsonArea(null);
+    setFentonExploreKey((key) => key + 1);
   };
 
   return (
@@ -32,14 +45,24 @@ function App() {
           onSearchChange={setSearchTerm}
           onClear={clearFilters}
           dataStatus={status}
+          dataIssue={issue}
           usingFallback={usingFallback}
         />
         <div className="content-grid">
           <MapPanel
+            areaName={selectedInsights.areaName}
             businesses={visibleBusinesses}
+            businessLayerAvailable={data.businesses.length > 0}
+            evidenceSources={data.profile.sources}
+            communityGeoJson={data.communityGeoJson}
+            selectedAreaId={selectedGeoJsonArea?.areaId ?? null}
+            onAreaSelect={setSelectedGeoJsonArea}
+            onDefaultAreaSelect={() => setSelectedGeoJsonArea(null)}
+            onExploreFenton={exploreFentonVillage}
+            exploreKey={fentonExploreKey}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
           />
-          <InsightsPanel insights={data.profile} />
+          <InsightsPanel insights={selectedInsights} comparisonAreas={comparisonAreas} />
         </div>
       </main>
     </div>

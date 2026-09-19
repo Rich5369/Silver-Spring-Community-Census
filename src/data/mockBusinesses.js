@@ -1,7 +1,7 @@
 // Development-only seed data. These records are fictional and are not verified public data.
 const MOCK_SOURCE = 'Demo / mock data — not verified';
 
-export const mockBusinesses = [
+const mockBusinessRecords = [
   {
     id: 1,
     name: 'Fenton Corner Cafe',
@@ -129,3 +129,8 @@ export const mockBusinesses = [
     source: MOCK_SOURCE,
   },
 ];
+
+export const mockBusinesses = mockBusinessRecords.map((business) => ({
+  ...business,
+  sourceIds: ['demo-businesses'],
+}));

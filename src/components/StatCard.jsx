@@ -1,6 +1,8 @@
-function StatCard({ label, value, note }) {
+import EvidenceDetails from './EvidenceDetails';
+
+function StatCard({ label, value, note, sources = [] }) {
   const displayValue = value == null || (typeof value === 'number' && !Number.isFinite(value))
-    ? '—'
+    ? 'Data unavailable'
     : value;
 
   return (
@@ -8,6 +10,7 @@ function StatCard({ label, value, note }) {
       <span>{label || 'Community indicator'}</span>
       <strong>{displayValue}</strong>
       <small>{note || 'Details not available'}</small>
+      <EvidenceDetails sources={sources} />
     </article>
   );
 }

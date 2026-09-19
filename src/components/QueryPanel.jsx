@@ -8,6 +8,7 @@ function QueryPanel({
   onSearchChange,
   onClear,
   dataStatus,
+  dataIssue,
   usingFallback,
 }) {
   return (
@@ -27,14 +28,14 @@ function QueryPanel({
         </form>
       </div>
 
-      <div className="filter-area">
+      <div className="filter-area" role="group" aria-labelledby="business-filter-label">
         <div className="filter-summary">
-          <span className="filter-label">Filter businesses</span>
+          <span className="filter-label" id="business-filter-label">Filter businesses</span>
           <output className="result-count" aria-live="polite">
             {resultCount} {resultCount === 1 ? 'result' : 'results'}
           </output>
         </div>
-        <div className="filter-list">
+        <div className="filter-list" aria-label="Business categories">
           {businessFilters.map((filter) => {
             const isActive = activeFilter === filter.id;
 
@@ -57,7 +58,14 @@ function QueryPanel({
         </div>
         <p className="data-load-status" role="status">
           {dataStatus === 'loading' && 'Loading community data…'}
-          {dataStatus === 'error' && 'API unavailable — showing safe demo data.'}
+          {dataStatus === 'error' && dataIssue === 'malformed'
+            && 'Some API data was invalid — showing safe demo data.'}
+          {dataStatus === 'error' && dataIssue !== 'malformed'
+            && 'API unavailable — showing safe demo data.'}
+          {dataStatus === 'partial' && dataIssue === 'malformed'
+            && 'Some API data was invalid — available sections remain active.'}
+          {dataStatus === 'partial' && dataIssue !== 'malformed'
+            && 'Some data is unavailable — available sections remain active.'}
           {dataStatus === 'success' && usingFallback && 'Demo data mode — no backend URL configured.'}
         </p>
       </div>
