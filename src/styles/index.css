@@ -217,6 +217,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .government-panel-list { margin: 8px 0 12px; padding-left: 18px; color: #31493d; font-size: 11px; line-height: 1.6; }
 .government-panel-list.muted { color: #6c776f; }
 .government-panel details { color: #52685b; font-size: 11px; }
+.government-visuals { display: grid; gap: 16px; margin-top: 16px; }
+.government-visuals h4 { margin: 0 0 8px; color: #31493d; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.government-bars { display: grid; gap: 8px; }
+.government-bar-label { display: flex; justify-content: space-between; gap: 8px; color: #52685b; font-size: 11px; }
+.government-bar-label strong { color: #1e4836; }
+.government-bar-track { height: 7px; margin-top: 3px; overflow: hidden; border-radius: 99px; background: #dce8df; }
+.government-bar-track span { display: block; height: 100%; border-radius: inherit; background: #267052; }
+.government-trend-note { margin: 14px 0 0; color: #6c776f; font-size: 10px; line-height: 1.45; }
 .opportunity-explorer h3 { margin: 4px 0 0; color: #203c2f; font-size: 15px; }
 .opportunity-intro, .opportunity-evidence { margin: 8px 0 0; color: #5f7067; font-size: 11px; line-height: 1.45; }
 .opportunity-controls { display: grid; gap: 5px; margin-top: 12px; color: #31493d; font-size: 11px; font-weight: 700; }
