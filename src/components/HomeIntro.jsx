@@ -22,6 +22,10 @@ export default function HomeIntro({ onExplore, onViewTrends }) {
         <p className="hero-audience"><span aria-hidden="true">✦</span> Built for planners, residents, and council conversations grounded in public evidence.</p>
       </div>
       <div className="home-purpose">
+        <div className="hero-flag-lockup">
+          <img src="/maryland-flag.svg" alt="Maryland flag" />
+          <span>Silver Spring · Maryland</span>
+        </div>
         <p>
           <span className="purpose-kicker">One place to start a better civic conversation</span>
           Public information about Silver Spring is spread across Census records, geographic
