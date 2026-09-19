@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import { fentonVillageInsights } from '../data/communityInsights';
 import { mockBusinesses } from '../data/mockBusinesses';
 import {
-  getBusinesses,
-  getCommunityProfile,
-  getSources,
-  getTransit,
+  getCommunityMap,
   isApiConfigured,
 } from './api';
 
@@ -16,7 +13,7 @@ const fallbackData = {
   communityGeoJson: null,
 };
 
-export function useCommunityData(area) {
+export function useCommunityData() {
   const [state, setState] = useState({
     status: isApiConfigured ? 'loading' : 'success',
     data: fallbackData,
@@ -32,48 +29,20 @@ export function useCommunityData(area) {
     const options = { signal: controller.signal };
     setState((current) => ({ ...current, status: 'loading', error: null, issue: null }));
 
-    Promise.allSettled([
-      getBusinesses(options),
-      getCommunityProfile(area, options),
-      getSources(area, options),
-      getTransit(options),
-    ])
-      .then((results) => {
+    getCommunityMap(options)
+      .then((communityMap) => {
         if (controller.signal.aborted) return;
-        const [businessesResult, profileResult, sourcesResult, transitResult] = results;
-        const failures = results.filter((result) => result.status === 'rejected');
-        const businesses = businessesResult.status === 'fulfilled'
-          ? businessesResult.value
-          : fallbackData.businesses;
-        const profile = profileResult.status === 'fulfilled'
-          ? profileResult.value
-          : fallbackData.profile;
-        const sources = profileResult.status === 'rejected'
-          ? fallbackData.profile.sources
-          : sourcesResult.status === 'fulfilled' ? sourcesResult.value : [];
-        const transit = transitResult.status === 'fulfilled' ? transitResult.value : [];
-        const error = failures[0]?.reason ?? null;
-        const issue = failures.some((result) => (
-          result.reason?.code === 'MALFORMED_RESPONSE' || result.reason instanceof SyntaxError
-        )) ? 'malformed' : failures.length > 0 ? 'api' : null;
-
-        if (import.meta.env.DEV && failures.length > 0) {
-          console.error('Some community data could not be loaded; safe fallbacks are active.', error);
-        }
-
         setState({
-          status: failures.length === 0
-            ? 'success'
-            : failures.length === results.length ? 'error' : 'partial',
+          status: 'success',
           data: {
-            businesses,
-            profile: { ...profile, sources },
-            transit,
-            communityGeoJson: null,
+            businesses: communityMap.businesses,
+            profile: fallbackData.profile,
+            transit: [],
+            communityGeoJson: communityMap.communityGeoJson,
           },
-          error,
-          issue,
-          usingFallback: failures.length > 0,
+          error: null,
+          issue: null,
+          usingFallback: false,
         });
       })
       .catch((error) => {
@@ -89,7 +58,7 @@ export function useCommunityData(area) {
       });
 
     return () => controller.abort();
-  }, [area]);
+  }, []);
 
   return state;
 }
