@@ -7,6 +7,7 @@ payload shape, and working CORS headers.
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import get_settings
@@ -41,3 +42,24 @@ def test_health_allows_frontend_origin(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == origin
+
+
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5173",
+    ],
+)
+def test_cors_allows_vite_fallback_ports(client: TestClient, origin: str) -> None:
+    """Vite increments its port when 5173 is taken.
+
+    A blocked origin makes the frontend fall back to demo data, which looks
+    identical to the backend being down - the most expensive class of bug to
+    diagnose during a live demo.
+    """
+    response = client.get("/health", headers={"Origin": origin})
+
+    assert response.headers.get("access-control-allow-origin") == origin

@@ -51,8 +51,17 @@ class Settings(BaseSettings):
     # Stored as a raw string rather than ``list[str]`` on purpose:
     # pydantic-settings parses complex types as JSON, which would reject the
     # comma-separated form that is far friendlier in a .env file or a shell.
+    # Vite's dev server increments its port when 5173 is already in use, so
+    # 5174 and 5175 are allowed too. Without them the frontend silently falls
+    # back to its demo data, which looks exactly like the backend being down -
+    # an expensive thing to debug during a live demo. Still an explicit list
+    # rather than a wildcard.
     cors_origins: str = Field(
-        default="http://localhost:5173,http://127.0.0.1:5173",
+        default=(
+            "http://localhost:5173,http://127.0.0.1:5173,"
+            "http://localhost:5174,http://127.0.0.1:5174,"
+            "http://localhost:5175,http://127.0.0.1:5175"
+        ),
         description="Comma-separated browser origins permitted to call this API.",
     )
 
