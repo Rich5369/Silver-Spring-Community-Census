@@ -5,8 +5,9 @@ import AboutData from './AboutData';
 import { fentonVillageInsights } from '../data/communityInsights';
 import { isDemoStatus } from '../services/provenance';
 import OpportunityExplorer from './OpportunityExplorer';
+import GovernmentPlanningPanel from './GovernmentPlanningPanel';
 
-function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [], businesses = [] }) {
+function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [], businesses = [], governmentSummary = null }) {
   const selectedInsights = insights ?? fentonVillageInsights;
   const stats = Array.isArray(selectedInsights.stats) ? selectedInsights.stats : [];
   const sources = Array.isArray(selectedInsights.sources) ? selectedInsights.sources : [];
@@ -38,6 +39,7 @@ function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [],
       </section>
 
       <OpportunityExplorer insights={selectedInsights} businesses={businesses} />
+      <GovernmentPlanningPanel summary={governmentSummary} />
 
       <section className="evidence-section" aria-labelledby="evidence-title">
         <div className="section-heading">
