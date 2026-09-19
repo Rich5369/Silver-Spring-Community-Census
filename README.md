@@ -11,7 +11,58 @@ npm run dev
 
 The frontend is a lightweight React + Vite application. UI components live in `src/components`, temporary display content in `src/data`, API integration helpers in `src/services`, and global presentation styles in `src/styles`.
 
-### Vercel deployment
+### Hosted deployment
+
+The current demo is hosted on Render:
+
+- Frontend: https://silver-spring-community-census-1.onrender.com
+- Backend API: https://silver-spring-community-census.onrender.com
+
+The frontend is a Render Static Site. Its build command is `npm run build`,
+its publish directory is `dist`, and its environment variable is:
+
+```text
+VITE_API_BASE_URL=https://silver-spring-community-census.onrender.com
+```
+
+The backend is a Render Web Service built from `backend/`. Its production
+environment must include:
+
+```text
+ENVIRONMENT=production
+SSCC_DEBUG=false
+CORS_ORIGINS=https://silver-spring-community-census-1.onrender.com
+```
+
+After changing frontend environment variables, choose **Save and rebuild** in
+Render. A save-only operation does not rebuild the static bundle.
+
+Verify the hosted deployment:
+
+```bash
+curl https://silver-spring-community-census.onrender.com/health
+curl 'https://silver-spring-community-census.onrender.com/api/v1/map/community'
+curl 'https://silver-spring-community-census.onrender.com/api/v1/areas?with_boundary_only=true'
+```
+
+The populated demo should report 14 areas and 207 businesses. The frontend
+should show the map, tract boundaries, business markers, ACS metrics, and the
+evidence-backed question panel.
+
+#### Restore a lost or recreated host
+
+If the Render service or site is lost, recreate them from the same GitHub
+repository and branch (`main`). For the frontend, use the repository root,
+`npm run build`, and `dist`. For the backend, use root directory `backend/`
+and the Docker runtime. Set the environment variables above before deploying.
+
+The backend image contains `backend/data/community.seed.db`; the startup
+configuration copies that baked snapshot into the runtime database when needed.
+Do not rely on an uncommitted local SQLite file or on a free-tier ephemeral
+filesystem. After recreation, check that the API returns `area_count: 14` and
+`business_count: 207` before sharing the frontend URL.
+
+### Vercel deployment (optional)
 
 Import the repository into Vercel with the project root set to the repository
 root. `vercel.json` supplies the Vite build and SPA fallback. Add this Vercel
