@@ -450,6 +450,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .community-context-details > * { grid-column: 1; }
 }
 
+@media (min-width: 901px) and (max-width: 1120px) {
+  .home-intro { gap: 34px; padding-right: 64px; padding-left: 64px; }
+  .content-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, 32%); }
+  .content-grid > .ask-community { padding: 16px; }
+  .evidence-bar { padding-right: 64px; padding-left: 64px; }
+  .evidence-bar > p { display: none; }
+}
+
 @media (max-width: 600px) {
   .site-header, .workspace { padding-right: 18px; padding-left: 18px; }
   .site-header { min-height: 64px; gap: 9px; padding-top: 11px; padding-bottom: 11px; }
@@ -499,6 +507,27 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .trend-accordion > button { min-height: 52px; }
   .trend-content { padding: 12px; }
   .trend-chart { min-width: 0; }
+}
+
+@media (max-width: 480px) {
+  .workspace { padding-right: 12px; padding-left: 12px; }
+  .home-intro { padding: 46px 16px 34px; }
+  .hero-copy h2 { max-width: 12ch; font-size: clamp(38px, 12vw, 52px); }
+  .hero-lede { margin-top: 17px; font-size: 15px; }
+  .home-purpose { padding-top: 18px; }
+  .capability-grid { gap: 6px; }
+  .capability-grid article { padding: 10px 4px; }
+  .capability-grid h3 { font-size: 12px; }
+  .capability-grid p { font-size: 10px; }
+  .evidence-bar-stats strong { font-size: 18px; }
+  .evidence-bar-stats span { font-size: 9px; }
+  .map-layers-control { top: 6px; right: 6px; width: min(185px, calc(100% - 12px)); }
+  .map-legend { right: 6px; bottom: 6px; left: 6px; max-width: calc(100% - 12px); }
+  .business-map-view { height: 360px; }
+  .business-map-view.expanded { height: min(74vh, 580px); }
+  .trend-summary { gap: 6px; }
+  .trend-summary strong { font-size: 16px; }
+  .trend-evidence { overflow-wrap: anywhere; }
 }
 
 @media (prefers-reduced-motion: reduce) {
