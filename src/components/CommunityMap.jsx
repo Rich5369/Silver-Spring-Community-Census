@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
 import MapDataLayers from './MapDataLayers';
 import MapLayersControl from './MapLayersControl';
@@ -39,6 +39,45 @@ function hasGeoJsonData(data) {
   if (data.type === 'FeatureCollection') return Array.isArray(data.features) && data.features.length > 0;
   if (data.type === 'Feature') return Boolean(data.geometry);
   return Boolean(data.type && data.coordinates);
+}
+
+function LocationMarker({ location, onSelect }) {
+  const markerRef = useRef(null);
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    const element = marker?.getElement?.();
+    if (!element) return undefined;
+
+    element.setAttribute('tabindex', '0');
+    element.setAttribute('role', 'button');
+    element.setAttribute('aria-label', `View ${location.name}`);
+    const openWithKeyboard = (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onSelect?.();
+        marker.openPopup();
+      }
+    };
+    element.addEventListener('keydown', openWithKeyboard);
+
+    return () => element.removeEventListener('keydown', openWithKeyboard);
+  }, [location.name, onSelect]);
+
+  return (
+    <CircleMarker
+      ref={markerRef}
+      center={location.position}
+      radius={10}
+      pathOptions={{ color: '#ffffff', fillColor: '#c95832', fillOpacity: 1, weight: 3 }}
+      eventHandlers={{ click: onSelect }}
+    >
+      <Popup>
+        <strong>{location.name}</strong>
+        <p>{location.description}</p>
+      </Popup>
+    </CircleMarker>
+  );
 }
 
 function CommunityMap({
@@ -110,18 +149,11 @@ function CommunityMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {locations.map((location) => (
-          <CircleMarker
+          <LocationMarker
             key={location.id}
-            center={location.position}
-            radius={10}
-            pathOptions={{ color: '#ffffff', fillColor: '#c95832', fillOpacity: 1, weight: 3 }}
-            eventHandlers={{ click: () => onDefaultAreaSelect?.() }}
-          >
-            <Popup>
-              <strong>{location.name}</strong>
-              <p>{location.description}</p>
-            </Popup>
-          </CircleMarker>
+            location={location}
+            onSelect={onDefaultAreaSelect}
+          />
         ))}
         <MapDataLayers
           visibility={layerVisibility}
