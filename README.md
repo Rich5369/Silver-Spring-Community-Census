@@ -13,7 +13,7 @@ The frontend is a lightweight React + Vite application. UI components live in `s
 
 ## Backend Integration Contract
 
-Set `VITE_API_BASE_URL` to the backend origin, without a trailing slash. If it is omitted, or if a configured API request fails, the frontend safely displays its clearly labeled demo data.
+Set `VITE_API_BASE_URL` to the backend origin, without a trailing slash. When it is omitted, the frontend uses the same-origin `/api` contract (and the Vite development proxy locally). If the API cannot be reached, the UI reports the connection failure instead of presenting the result as live data.
 
 The frontend uses the backend's versioned API contract:
 

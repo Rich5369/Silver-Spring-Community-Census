@@ -144,6 +144,11 @@ function CommunityMap({
       setLayerVisibility((current) => ({ ...current, community: true }));
     }
   }, [highlightedAreaIds]);
+  useEffect(() => {
+    if (safeCommunityGeoJson?.features?.length > 0) {
+      setLayerVisibility((current) => ({ ...current, community: true }));
+    }
+  }, [safeCommunityGeoJson]);
   const selectArea = (area) => {
     onAreaSelect?.(area);
   };
@@ -168,8 +173,8 @@ function CommunityMap({
         className="leaflet-map"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; OpenStreetMap contributors'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
         {locations.map((location) => (
           <LocationMarker

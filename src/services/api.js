@@ -3,7 +3,10 @@ import { mockBusinesses } from '../data/mockBusinesses';
 import { countBusinessesByCategory } from './businessQuery';
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-export const isApiConfigured = Boolean(configuredBaseUrl);
+// The frontend and API are deployed together in the demo image, and Vite
+// proxies /api locally. An unset URL must therefore mean same-origin API,
+// not silent mock-data mode.
+export const isApiConfigured = true;
 const API_BASE_URL = configuredBaseUrl?.replace(/\/$/, '') ?? '';
 
 // Keep finalized backend paths centralized so versioning remains explicit.
