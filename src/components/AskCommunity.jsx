@@ -45,7 +45,7 @@ function AskCommunity({ question, onQuestionChange, onAsk, status, result, error
           </button>
         ))}
       </div>
-      {error && <p className="query-error" role="alert">The question could not be answered. Please try a suggested question.</p>}
+      {error && <p className="query-error" role="alert">The API did not answer this question. Confirm the backend is running and VITE_API_BASE_URL is configured.</p>}
       {result && (
         <article className="query-answer" aria-live="polite">
           <div>

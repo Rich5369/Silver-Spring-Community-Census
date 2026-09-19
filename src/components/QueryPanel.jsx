@@ -86,7 +86,8 @@ function QueryPanel({
           {dataStatus === 'partial' && dataIssue !== 'malformed'
             && 'Some data is unavailable — available sections remain active.'}
           {dataStatus === 'success' && usingFallback && 'Demo data mode — no backend URL configured.'}
-          {dataStatus === 'success' && !usingFallback && 'Connected to stored business data. Area demo statistics are labeled separately.'}
+          {dataStatus === 'success' && !usingFallback && 'Connected to stored Census and business data.'}
+          {dataStatus === 'error' && 'The API could not be reached. Start the backend or configure VITE_API_BASE_URL.'}
         </p>
       </div>
     </section>
