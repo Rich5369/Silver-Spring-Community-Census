@@ -1,17 +1,14 @@
-import { fentonVillageInsights } from '../data/communityInsights';
 import { mockBusinesses } from '../data/mockBusinesses';
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 export const isApiConfigured = Boolean(configuredBaseUrl);
 const API_BASE_URL = configuredBaseUrl?.replace(/\/$/, '') ?? '';
 
-// Tentative paths are centralized here. Update only this object when the backend team
-// finalizes endpoint names; these are a frontend contract proposal, not live production APIs.
+// The frontend consumes the versioned API contract.
 const ENDPOINTS = {
-  businesses: '/businesses',
-  communityProfile: (area) => `/community-profiles/${encodeURIComponent(area)}`,
-  sources: (area) => `/sources?area=${encodeURIComponent(area)}`,
-  transit: '/transit',
+  businesses: '/api/v1/businesses',
+  communityProfile: '/api/v1/insights/fenton-village',
+  communityMap: '/api/v1/map/community',
 };
 
 async function requestJson(path, options = {}) {
@@ -84,6 +81,32 @@ const formatCurrency = (value) => (
 );
 
 export function normalizeCommunityProfile(payload, requestedArea = 'Selected community') {
+  // The v1 insights response is the authoritative, evidence-backed headline
+  // payload. Keep the UI's small profile shape as a view-model adapter.
+  if (payload?.community_snapshot) {
+    const values = Object.fromEntries(payload.community_snapshot.map((item) => [item.key, item]));
+    const statValue = (key) => values[key]?.value ?? null;
+    const sources = payload.community_snapshot.flatMap((item) => item.evidence ?? []).map((evidence, index) => ({
+      id: `${evidence.organization}-${evidence.dataset}-${index}`,
+      organization: evidence.organization,
+      dataset: evidence.dataset,
+      year: evidence.dataset_year ?? '',
+      geography: payload.study_area?.name ?? requestedArea,
+      table: evidence.source_variable ?? '',
+      url: evidence.source_url,
+    }));
+    return {
+      areaName: payload.study_area?.name || requestedArea,
+      dataStatus: 'Connected ACS and OpenStreetMap data',
+      summary: payload.study_area?.method || 'Deterministic summary of stored community data.',
+      statistics: {
+        population: statValue('total_population'),
+        medianHouseholdIncome: statValue('median_household_income'),
+        businessCount: payload.business_landscape?.total_businesses ?? null,
+      },
+      sources,
+    };
+  }
   const profile = payload?.profile ?? payload;
   if (payload == null || payload?.profile === null) {
     return {
@@ -135,7 +158,7 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       stat('restaurants', 'Restaurants', formatInteger(finiteNumber(statistics.restaurantCount))),
       stat('retail', 'Retail', formatInteger(finiteNumber(statistics.retailCount))),
     ],
-    sources: [],
+    sources: Array.isArray(profile.sources) ? profile.sources : [],
   };
 }
 
@@ -164,13 +187,28 @@ export async function getBusinesses(options = {}) {
 }
 
 export async function getCommunityProfile(area, options = {}) {
-  if (!isApiConfigured) return fentonVillageInsights;
-  return normalizeCommunityProfile(await requestJson(ENDPOINTS.communityProfile(area), options), area);
+  if (!isApiConfigured) return null;
+  return normalizeCommunityProfile(await requestJson(ENDPOINTS.communityProfile, options), area);
 }
 
 export async function getSources(area, options = {}) {
-  if (!isApiConfigured) return fentonVillageInsights.sources;
-  return normalizeSources(await requestJson(ENDPOINTS.sources(area), options));
+  if (!isApiConfigured) return [];
+  return [];
+}
+
+export async function getCommunityMap(options = {}) {
+  if (!isApiConfigured) return { businesses: [], communityGeoJson: null };
+  const payload = await requestJson(ENDPOINTS.communityMap, options);
+  const features = payload?.businesses?.features;
+  if (!Array.isArray(features) || !payload?.areas) throw malformedResponse('community map');
+  return {
+    businesses: normalizeBusinesses(features.map(({ properties = {}, geometry = {} }) => ({
+      ...properties,
+      latitude: geometry.coordinates?.[1],
+      longitude: geometry.coordinates?.[0],
+    }))),
+    communityGeoJson: payload.areas,
+  };
 }
 
 export async function getTransit(options = {}) {

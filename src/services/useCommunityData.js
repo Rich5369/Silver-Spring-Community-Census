@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { fentonVillageInsights } from '../data/communityInsights';
 import { mockBusinesses } from '../data/mockBusinesses';
 import {
-  getBusinesses,
   getCommunityProfile,
-  getSources,
-  getTransit,
+  getCommunityMap,
   isApiConfigured,
 } from './api';
 
@@ -33,25 +31,21 @@ export function useCommunityData(area) {
     setState((current) => ({ ...current, status: 'loading', error: null, issue: null }));
 
     Promise.allSettled([
-      getBusinesses(options),
       getCommunityProfile(area, options),
-      getSources(area, options),
-      getTransit(options),
+      getCommunityMap(options),
     ])
       .then((results) => {
         if (controller.signal.aborted) return;
-        const [businessesResult, profileResult, sourcesResult, transitResult] = results;
+        const [profileResult, mapResult] = results;
         const failures = results.filter((result) => result.status === 'rejected');
-        const businesses = businessesResult.status === 'fulfilled'
-          ? businessesResult.value
+        const businesses = mapResult.status === 'fulfilled'
+          ? mapResult.value.businesses
           : fallbackData.businesses;
         const profile = profileResult.status === 'fulfilled'
           ? profileResult.value
           : fallbackData.profile;
-        const sources = profileResult.status === 'rejected'
-          ? fallbackData.profile.sources
-          : sourcesResult.status === 'fulfilled' ? sourcesResult.value : [];
-        const transit = transitResult.status === 'fulfilled' ? transitResult.value : [];
+        const sources = profile?.sources ?? [];
+        const transit = [];
         const error = failures[0]?.reason ?? null;
         const issue = failures.some((result) => (
           result.reason?.code === 'MALFORMED_RESPONSE' || result.reason instanceof SyntaxError
@@ -69,7 +63,7 @@ export function useCommunityData(area) {
             businesses,
             profile: { ...profile, sources },
             transit,
-            communityGeoJson: null,
+            communityGeoJson: mapResult.status === 'fulfilled' ? mapResult.value.communityGeoJson : null,
           },
           error,
           issue,
