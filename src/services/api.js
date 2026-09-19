@@ -19,18 +19,40 @@ const ENDPOINTS = {
   governmentSummary: '/api/v1/government/summary',
 };
 
+const REQUEST_TIMEOUT_MS = 8000;
+const responseCache = new Map();
+
 async function requestJson(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: { Accept: 'application/json', ...options.headers },
-  });
+  const method = (options.method || 'GET').toUpperCase();
+  const cacheKey = `${method}:${API_BASE_URL}${path}`;
+  if (method === 'GET' && responseCache.has(cacheKey)) return responseCache.get(cacheKey);
 
-  if (!response.ok) {
-    throw new Error(`Community data request failed (${response.status})`);
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const controller = new AbortController();
+  const upstreamSignal = options.signal;
+  const abortUpstream = () => controller.abort();
+  upstreamSignal?.addEventListener('abort', abortUpstream, { once: true });
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: { Accept: 'application/json', ...options.headers },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Community data request failed (${response.status})`);
+    }
+
+    if (response.status === 204) return null;
+    const payload = await response.json();
+    // GET responses are immutable for the lifetime of this page. This prevents
+    // re-renders and repeated panels from refetching the same public snapshot.
+    if (method === 'GET') responseCache.set(cacheKey, payload);
+    return payload;
+  } finally {
+    clearTimeout(timeout);
+    upstreamSignal?.removeEventListener('abort', abortUpstream);
   }
-
-  if (response.status === 204) return null;
-  return response.json();
 }
 
 export async function getGovernmentSummary() {

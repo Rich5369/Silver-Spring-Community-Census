@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 import json
 from pathlib import Path
+import time
 
 import httpx
 
@@ -23,8 +23,10 @@ SNAPSHOT_ROWS = [
     )
 ]
 
+_CACHE_TTL_SECONDS = 900
+_cached_response: tuple[float, ServiceRequestResponse] | None = None
 
-@lru_cache(maxsize=1)
+
 def fetch_mc311_trend() -> ServiceRequestResponse:
     """Fetch annual MC311 volume for ZIP 20910, with a short-lived process cache.
 
@@ -32,6 +34,11 @@ def fetch_mc311_trend() -> ServiceRequestResponse:
     resident-level records, and a source outage produces an explicit error
     rather than invented values.
     """
+    global _cached_response
+    now = time.monotonic()
+    if _cached_response and now - _cached_response[0] < _CACHE_TTL_SECONDS:
+        return _cached_response[1]
+
     params = {
         "$select": "date_extract_y(created) as year,count(*) as requests",
         "$where": 'x_zipcode="20910"',
@@ -39,7 +46,7 @@ def fetch_mc311_trend() -> ServiceRequestResponse:
         "$order": "year",
     }
     try:
-        response = httpx.get(MC311_URL, params=params, timeout=15.0,
+        response = httpx.get(MC311_URL, params=params, timeout=5.0,
                              headers={"User-Agent": "SilverSpringCommunityCensus/0.1"})
         response.raise_for_status()
         rows = response.json()
@@ -63,7 +70,7 @@ def fetch_mc311_trend() -> ServiceRequestResponse:
         ServiceRequestTrend(year=int(row["year"]), requests=int(row["requests"]))
         for row in rows if row.get("year") and row.get("requests")
     ]
-    return ServiceRequestResponse(
+    result = ServiceRequestResponse(
         dataset="MC311 Service Requests",
         geography="Montgomery County ZIP 20910 (Silver Spring)",
         series=series,
@@ -83,3 +90,5 @@ def fetch_mc311_trend() -> ServiceRequestResponse:
         ],
         source_status=source_status,
     )
+    _cached_response = (time.monotonic(), result)
+    return result
