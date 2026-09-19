@@ -81,7 +81,11 @@ function App() {
             exploreKey={fentonExploreKey}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
           />
-          <InsightsPanel insights={selectedInsights} comparisonAreas={comparisonAreas} />
+          <InsightsPanel
+            insights={selectedInsights}
+            comparisonAreas={comparisonAreas}
+            businesses={data.businesses}
+          />
         </div>
       </main>
     </div>

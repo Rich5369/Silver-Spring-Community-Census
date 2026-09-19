@@ -4,8 +4,9 @@ import StatCard from './StatCard';
 import AboutData from './AboutData';
 import { fentonVillageInsights } from '../data/communityInsights';
 import { isDemoStatus } from '../services/provenance';
+import OpportunityExplorer from './OpportunityExplorer';
 
-function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] }) {
+function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [], businesses = [] }) {
   const selectedInsights = insights ?? fentonVillageInsights;
   const stats = Array.isArray(selectedInsights.stats) ? selectedInsights.stats : [];
   const sources = Array.isArray(selectedInsights.sources) ? selectedInsights.sources : [];
@@ -35,6 +36,8 @@ function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] 
           {stats.length === 0 && <p className="empty-data-message">No statistics available.</p>}
         </div>
       </section>
+
+      <OpportunityExplorer insights={selectedInsights} businesses={businesses} />
 
       <section className="evidence-section" aria-labelledby="evidence-title">
         <div className="section-heading">
