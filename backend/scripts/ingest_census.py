@@ -61,6 +61,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Ingest only the county total, skipping the ~200 tract rows.",
     )
+    parser.add_argument(
+        "--year",
+        type=int,
+        default=ACS_YEAR,
+        help="ACS 5-year vintage to ingest (default: current catalog year).",
+    )
     args = parser.parse_args(argv)
 
     settings = get_settings()
@@ -70,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         else INGESTION_TARGETS
     )
 
-    print(f"ACS release : {ACS_YEAR} {ACS_DATASET}")
+    print(f"ACS release : {args.year} {ACS_DATASET}")
     print(f"Database    : {settings.database_url}")
     # Whether a key is configured is useful; the key itself is never shown.
     print(f"API key     : {'configured' if settings.has_census_api_key else 'none'}")
@@ -83,7 +89,14 @@ def main(argv: list[str] | None = None) -> int:
 
     session = SessionLocal()
     try:
-        report = ingest_targets(session, build_client(), targets)
+        # ACS variable IDs used by this project are stable across the supported
+        # 5-year vintages. Each year is stored under its own evidence source.
+        client = CensusClient(year=args.year, dataset=ACS_DATASET,
+                              api_key=(
+                                  settings.census_api_key.get_secret_value()
+                                  if settings.has_census_api_key else None
+                              ))
+        report = ingest_targets(session, client, targets)
     finally:
         session.close()
         engine.dispose()

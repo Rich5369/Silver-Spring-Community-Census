@@ -93,6 +93,21 @@ The frontend uses the backend's versioned API contract:
 - `GET /api/v1/insights/fenton-village`
 - `GET /api/v1/government/summary`
 
+To build historical ACS coverage for government trend views, ingest supported
+5-year vintages separately. Each run keeps its year as part of the evidence
+source and is safe to repeat:
+
+```bash
+cd backend
+python scripts/ingest_census.py --year 2023
+python scripts/ingest_census.py --year 2022
+python scripts/ingest_geographies.py
+```
+
+The current seeded demo contains the 2024 vintage. Historical trend charts
+must remain unavailable until older vintages have been ingested; the UI must
+not infer a trend from one year.
+
 ### Government planning summary
 
 The civic planning endpoint returns the evidence-backed study-area snapshot,
