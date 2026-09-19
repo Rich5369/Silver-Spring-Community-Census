@@ -301,6 +301,13 @@ persistent volume; otherwise a redeploy recreates an empty database. Verify
 the release with `GET /api/v1/areas?with_boundary_only=true` and expect
 `count: 14`, then check `/api/v1/map/community` for `area_count: 14`.
 
+The included `Dockerfile` bakes `data/community.seed.db` into the image, which
+is suitable for a read-only hackathon demo. Set `CORS_ORIGINS` in the hosting
+provider to the exact deployed frontend origin, for example
+`https://your-app.vercel.app` (comma-separated if more than one). Run
+`python -m scripts.check_demo_data` during deployment to fail before serving an
+empty database.
+
 ## Running tests
 
 ```bash

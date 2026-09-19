@@ -5,6 +5,7 @@
 
 # SQLite runtime files ---------------------------------------------------
 data/*.db
+!data/community.seed.db
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
