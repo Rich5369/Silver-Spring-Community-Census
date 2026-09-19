@@ -42,14 +42,6 @@ function AskCommunity({ question, onQuestionChange, onAsk, status, result, error
           {status === 'loading' ? 'Answering…' : 'Ask'}
         </button>
       </form>
-      <p className="suggestion-label">Try asking</p>
-      <div className="suggested-questions" aria-label="Suggested questions">
-        {suggestions.slice(0, 4).map((suggestion) => (
-          <button type="button" key={suggestion} onClick={() => onQuestionChange(suggestion)}>
-            {suggestion}
-          </button>
-        ))}
-      </div>
       {error && <p className="query-error" role="alert">The API did not answer this question. Confirm the backend is running and VITE_API_BASE_URL is configured.</p>}
       <div aria-live="polite" aria-busy={status === 'loading'}>
       {status === 'loading' && <p>Looking up community data…</p>}
@@ -69,6 +61,16 @@ function AskCommunity({ question, onQuestionChange, onAsk, status, result, error
           <EvidenceDetails sources={sources} label="Verify this answer" />
         </article>
       )}
+      </div>
+      <div className={result ? 'suggestions-after-answer' : ''}>
+        <p className="suggestion-label">Try asking</p>
+        <div className="suggested-questions" aria-label="Suggested questions">
+          {suggestions.slice(0, 4).map((suggestion) => (
+            <button type="button" key={suggestion} onClick={() => onQuestionChange(suggestion)}>
+              {suggestion}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
