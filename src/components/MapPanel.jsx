@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import CommunityMap from './CommunityMap';
 import { fentonVillage, silverSpringMapView } from '../data/mapData';
+import { mockBusinesses } from '../data/mockBusinesses';
 
 function MapPanel() {
   const [resetKey, setResetKey] = useState(0);
@@ -25,6 +26,7 @@ function MapPanel() {
         center={silverSpringMapView.center}
         zoom={silverSpringMapView.zoom}
         locations={[fentonVillage]}
+        businesses={mockBusinesses}
         resetKey={resetKey}
       />
     </section>

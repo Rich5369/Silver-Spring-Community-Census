@@ -70,6 +70,13 @@ button { cursor: pointer; }
 .leaflet-popup-content { color: #24332b; line-height: 1.45; }
 .leaflet-popup-content strong { color: #1e4836; font-size: 14px; }
 .leaflet-popup-content p { margin: 6px 0 0; }
+.mock-layer-notice { position: absolute; z-index: 1000; right: 10px; bottom: 22px; max-width: calc(100% - 72px); padding: 7px 10px; border: 1px solid #e2c782; border-radius: 5px; color: #644d16; background: rgb(255 248 225 / 96%); box-shadow: 0 2px 8px rgb(24 35 29 / 14%); font-size: 11px; font-weight: 700; pointer-events: none; }
+.business-popup > strong { display: block; margin-top: 7px; }
+.mock-data-label { display: inline-block; padding: 2px 6px; border-radius: 3px; color: #644d16; background: #fff3cd; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.business-popup dl { margin: 9px 0 0; }
+.business-popup dl > div { margin-top: 6px; }
+.business-popup dt { color: #66776d; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.business-popup dd { margin: 1px 0 0; }
 
 .insights-panel { padding: 22px; border-left: 1px solid #dde4de; background: #fbfcfb; }
 .panel-heading { padding-bottom: 18px; border-bottom: 1px solid #e0e6e1; }
