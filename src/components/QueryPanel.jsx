@@ -1,33 +1,57 @@
-import { filters } from '../data/placeholderData';
+import { businessFilters } from '../services/businessQuery';
 
-function QueryPanel() {
+function QueryPanel({
+  activeFilter,
+  searchTerm,
+  resultCount,
+  onFilterChange,
+  onSearchChange,
+  onClear,
+}) {
   return (
     <section className="query-panel" aria-label="Search and filters">
       <div className="search-area">
-        <label htmlFor="community-query">Explore the community</label>
-        <div className="search-field">
+        <label htmlFor="community-query">Search the map</label>
+        <form className="search-field" onSubmit={(event) => event.preventDefault()}>
           <span aria-hidden="true">⌕</span>
           <input
             id="community-query"
             type="search"
-            placeholder="Try “restaurants in Fenton Village”"
+            value={searchTerm}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search businesses or explore the community..."
           />
-          <button type="button">Search</button>
-        </div>
+          <button type="submit">Search</button>
+        </form>
       </div>
 
       <div className="filter-area">
-        <span className="filter-label">Filters</span>
+        <div className="filter-summary">
+          <span className="filter-label">Filter businesses</span>
+          <output className="result-count" aria-live="polite">
+            {resultCount} {resultCount === 1 ? 'result' : 'results'}
+          </output>
+        </div>
         <div className="filter-list">
-          {filters.map((filter, index) => (
-            <button
-              className={index === 0 ? 'filter-chip active' : 'filter-chip'}
-              type="button"
-              key={filter}
-            >
-              {filter}
-            </button>
-          ))}
+          {businessFilters.map((filter) => {
+            const isActive = activeFilter === filter.id;
+
+            return (
+              <button
+                className={isActive ? 'filter-chip active' : 'filter-chip'}
+                type="button"
+                key={filter.id}
+                aria-pressed={isActive}
+                onClick={() => onFilterChange(filter.id)}
+              >
+                {isActive && <span className="active-check" aria-hidden="true">✓</span>}
+                {filter.label}
+              </button>
+            );
+          })}
+          <button className="filter-chip clear-filter" type="button" onClick={onClear}>
+            Clear Filters
+          </button>
         </div>
       </div>
     </section>
