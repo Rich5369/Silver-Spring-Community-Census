@@ -7,7 +7,6 @@ function Header() {
         <h1>Silver Spring Community Census</h1>
       </div>
       <div className="location-label">
-        <img className="location-flag" src="/maryland-flag.svg" alt="Maryland" />
         <span className="location-full">Silver Spring, Maryland</span>
         <span className="location-short">Silver Spring, MD</span>
       </div>
