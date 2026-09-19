@@ -28,6 +28,7 @@ function CommunityMap({
   locations = [],
   businesses = [],
   showEmptyResults = false,
+  emptyResultsMessage = 'No business records are available.',
   resetKey = 0,
 }) {
   return (
@@ -67,7 +68,7 @@ function CommunityMap({
       {showEmptyResults && (
         <div className="map-empty-results" role="status">
           <strong>No businesses found</strong>
-          <span>Try another category or clear the search.</span>
+          <span>{emptyResultsMessage}</span>
         </div>
       )}
     </div>

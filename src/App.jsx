@@ -3,15 +3,16 @@ import Header from './components/Header';
 import InsightsPanel from './components/InsightsPanel';
 import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
-import { mockBusinesses } from './data/mockBusinesses';
 import { queryBusinesses } from './services/businessQuery';
+import { useCommunityData } from './services/useCommunityData';
 
 function App() {
+  const { data, status, usingFallback } = useCommunityData('Fenton Village');
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const visibleBusinesses = useMemo(
-    () => queryBusinesses({ businesses: mockBusinesses, filter: activeFilter, searchTerm }),
-    [activeFilter, searchTerm],
+    () => queryBusinesses({ businesses: data.businesses, filter: activeFilter, searchTerm }),
+    [activeFilter, data.businesses, searchTerm],
   );
 
   const clearFilters = () => {
@@ -30,13 +31,15 @@ function App() {
           onFilterChange={setActiveFilter}
           onSearchChange={setSearchTerm}
           onClear={clearFilters}
+          dataStatus={status}
+          usingFallback={usingFallback}
         />
         <div className="content-grid">
           <MapPanel
             businesses={visibleBusinesses}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
           />
-          <InsightsPanel />
+          <InsightsPanel insights={data.profile} />
         </div>
       </main>
     </div>

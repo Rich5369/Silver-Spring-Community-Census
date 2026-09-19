@@ -26,7 +26,10 @@ function MapPanel({ businesses = [], hasActiveQuery = false }) {
         zoom={silverSpringMapView.zoom}
         locations={[fentonVillage]}
         businesses={businesses}
-        showEmptyResults={hasActiveQuery && businesses.length === 0}
+        showEmptyResults={businesses.length === 0}
+        emptyResultsMessage={hasActiveQuery
+          ? 'Try another category or clear the search.'
+          : 'No business records are available for this area.'}
         resetKey={resetKey}
       />
     </section>
