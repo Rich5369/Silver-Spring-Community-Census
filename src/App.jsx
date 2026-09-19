@@ -5,6 +5,7 @@ import OpportunityExplorer from './components/OpportunityExplorer';
 import GovernmentPlanningPanel from './components/GovernmentPlanningPanel';
 import PlanningTrends from './components/PlanningTrends';
 import HomeIntro from './components/HomeIntro';
+import LiveEvidenceBar from './components/LiveEvidenceBar';
 import { answerAreaQuestion } from './services/areaQuestion';
 import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
@@ -118,6 +119,7 @@ function App() {
           onExplore={() => scrollToSection('community-explorer')}
           onViewTrends={() => scrollToSection('planning-trends')}
         />
+        <LiveEvidenceBar data={data} status={status} usingFallback={usingFallback} />
         <div className="workspace">
           <PlanningTrends
             insights={selectedInsights}

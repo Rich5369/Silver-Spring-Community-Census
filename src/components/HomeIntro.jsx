@@ -9,7 +9,7 @@ export default function HomeIntro({ onExplore, onViewTrends }) {
   return (
     <section className="home-intro" aria-labelledby="home-intro-title">
       <div className="hero-copy">
-        <p className="eyebrow">Community intelligence for Silver Spring</p>
+        <p className="eyebrow"><span className="eyebrow-dot" />Community intelligence for Silver Spring</p>
         <h2 id="home-intro-title">Understand the community behind the map.</h2>
         <p className="hero-lede">
           Explore Census trends, local businesses, housing, transportation, and public evidence
@@ -19,10 +19,11 @@ export default function HomeIntro({ onExplore, onViewTrends }) {
           <button className="primary-button" type="button" onClick={onViewTrends}>View community trends</button>
           <button className="secondary-button" type="button" onClick={onExplore}>Explore the map</button>
         </div>
-        <p className="hero-audience">Built to help planners and communities understand local conditions through public evidence.</p>
+        <p className="hero-audience"><span aria-hidden="true">✦</span> Built for planners, residents, and council conversations grounded in public evidence.</p>
       </div>
       <div className="home-purpose">
         <p>
+          <span className="purpose-kicker">One place to start a better civic conversation</span>
           Public information about Silver Spring is spread across Census records, geographic
           layers, business data, and planning sources. This tool brings that evidence together
           in one interactive community map.
