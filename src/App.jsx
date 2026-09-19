@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import Header from './components/Header';
+import AskCommunity from './components/AskCommunity';
 import InsightsPanel from './components/InsightsPanel';
 import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
 import { buildBusinessFilters, queryBusinesses } from './services/businessQuery';
 import { useCommunityData } from './services/useCommunityData';
+import { askCommunityQuestion } from './services/api';
 
 function App() {
   const { data, status, issue, usingFallback } = useCommunityData();
@@ -12,6 +14,8 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGeoJsonArea, setSelectedGeoJsonArea] = useState(null);
   const [fentonExploreKey, setFentonExploreKey] = useState(0);
+  const [question, setQuestion] = useState('');
+  const [queryState, setQueryState] = useState({ status: 'idle', result: null, error: null });
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
   // Once the default profile is a real tract, selecting that same tract would
   // otherwise compare it against itself.
@@ -22,10 +26,13 @@ function App() {
     ),
     [data.profile, selectedGeoJsonArea],
   );
-  const visibleBusinesses = useMemo(
-    () => queryBusinesses({ businesses: data.businesses, filter: activeFilter, searchTerm }),
-    [activeFilter, data.businesses, searchTerm],
-  );
+  const queryBusinessIds = queryState.result?.parsed?.intent === 'nearby_businesses'
+    ? new Set((queryState.result.businesses ?? []).map((business) => business.id))
+    : null;
+  const visibleBusinesses = useMemo(() => {
+    const filtered = queryBusinesses({ businesses: data.businesses, filter: activeFilter, searchTerm });
+    return queryBusinessIds ? filtered.filter((business) => queryBusinessIds.has(business.id)) : filtered;
+  }, [activeFilter, data.businesses, queryBusinessIds, searchTerm]);
   // Chip counts describe what the current search would return, so a chip never
   // promises results it cannot deliver. Categories the backend reports but the
   // curated groups do not cover surface as an "Other" chip.
@@ -49,10 +56,33 @@ function App() {
     setFentonExploreKey((key) => key + 1);
   };
 
+  const askQuestion = async () => {
+    const submitted = question.trim();
+    if (!submitted) return;
+    setQueryState({ status: 'loading', result: null, error: null });
+    try {
+      const result = await askCommunityQuestion(submitted);
+      setQueryState({ status: 'success', result, error: null });
+      setActiveFilter('all');
+      setSearchTerm('');
+      setFentonExploreKey((key) => key + 1);
+    } catch (error) {
+      setQueryState({ status: 'error', result: null, error });
+    }
+  };
+
   return (
     <div className="app-shell">
       <Header />
       <main className="workspace">
+        <AskCommunity
+          question={question}
+          onQuestionChange={setQuestion}
+          onAsk={askQuestion}
+          status={queryState.status}
+          result={queryState.result}
+          error={queryState.error}
+        />
         <QueryPanel
           activeFilter={activeFilter}
           filters={filters}
@@ -75,6 +105,7 @@ function App() {
             evidenceSources={data.profile.sources}
             communityGeoJson={data.communityGeoJson}
             selectedAreaId={selectedGeoJsonArea?.areaId ?? null}
+            highlightedAreaIds={queryState.result?.map?.area_geoids ?? []}
             onAreaSelect={setSelectedGeoJsonArea}
             onDefaultAreaSelect={() => setSelectedGeoJsonArea(null)}
             onExploreFenton={exploreFentonVillage}

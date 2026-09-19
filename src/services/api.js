@@ -12,6 +12,7 @@ const ENDPOINTS = {
   businessCategories: '/api/v1/businesses/categories',
   communityMap: '/api/v1/map/community',
   communityProfile: '/api/v1/insights/fenton-village',
+  query: '/api/v1/query',
 };
 
 async function requestJson(path, options = {}) {
@@ -275,4 +276,14 @@ export async function getCommunityMap(options = {}) {
 export async function getCommunityProfile(area, options = {}) {
   if (!isApiConfigured) return null;
   return normalizeCommunityProfile(await requestJson(ENDPOINTS.communityProfile, options), area);
+}
+
+export async function askCommunityQuestion(question, options = {}) {
+  if (!isApiConfigured) throw new Error('The question API is not configured.');
+  return requestJson(ENDPOINTS.query, {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    body: JSON.stringify({ question }),
+  });
 }

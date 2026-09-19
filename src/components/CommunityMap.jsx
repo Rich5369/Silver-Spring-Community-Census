@@ -103,6 +103,7 @@ function CommunityMap({
   communityGeoJson = null,
   transitGeoJson = null,
   selectedAreaId = null,
+  highlightedAreaIds = [],
   selectedBusinessId = null,
   onBusinessSelect,
   onAreaSelect,
@@ -138,6 +139,11 @@ function CommunityMap({
   useEffect(() => {
     if (businessFocus) setLayerVisibility((current) => ({ ...current, businesses: true }));
   }, [businessFocus]);
+  useEffect(() => {
+    if (highlightedAreaIds.length > 0) {
+      setLayerVisibility((current) => ({ ...current, community: true }));
+    }
+  }, [highlightedAreaIds]);
   const selectArea = (area) => {
     onAreaSelect?.(area);
   };
@@ -180,6 +186,7 @@ function CommunityMap({
           communityGeoJson={safeCommunityGeoJson}
           transitGeoJson={transitGeoJson}
           selectedAreaId={selectedAreaId}
+          highlightedAreaIds={highlightedAreaIds}
           selectedBusinessId={selectedBusinessId}
           onBusinessSelect={onBusinessSelect}
           isVisible={isVisible}

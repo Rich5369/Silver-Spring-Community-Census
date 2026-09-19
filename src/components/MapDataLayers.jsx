@@ -9,6 +9,7 @@ function MapDataLayers({
   communityGeoJson = null,
   transitGeoJson = null,
   selectedAreaId = null,
+  highlightedAreaIds = [],
   selectedBusinessId = null,
   onBusinessSelect,
   isVisible = true,
@@ -31,6 +32,7 @@ function MapDataLayers({
         <CensusAreaLayer
           data={communityGeoJson}
           selectedAreaId={selectedAreaId}
+          highlightedAreaIds={highlightedAreaIds}
           onAreaSelect={onAreaSelect}
         />
       )}
