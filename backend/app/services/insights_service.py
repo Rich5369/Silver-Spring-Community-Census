@@ -487,6 +487,10 @@ def build_insights(session: Session) -> InsightsResponse:
     graduates = total("bachelors_or_higher")
     # B15003 counts only adults 25+, so total population is not a valid base.
     education_base = total("adults_25_plus")
+    rent_burdened = total("rent_burdened_households")
+    rent_burden_base = total("renter_households_with_rent_data")
+    labor_force = total("civilian_labor_force")
+    unemployed = total("unemployed_people")
 
     # Active commuting sums three modes, so it gets its own aggregate rather
     # than reusing ratio_value's single-numerator path.
@@ -514,6 +518,8 @@ def build_insights(session: Session) -> InsightsResponse:
         _count_value(owners, "owner_occupied_households", "Owner-occupied households", "households"),
         _count_value(workers, "commuters_total", "Workers aged 16+", "people"),
         _count_value(education_base, "adults_25_plus", "Residents aged 25+", "people"),
+        _count_value(rent_burdened, "rent_burdened_households", "Rent-burdened renter households", "households"),
+        _count_value(unemployed, "unemployed_people", "Unemployed population", "people"),
         ratio_value(
             key="renter_share", label="Renter-occupied share",
             numerator=renters, denominator=households,
@@ -552,6 +558,16 @@ def build_insights(session: Session) -> InsightsResponse:
             key="bachelors_or_higher_share", label="Bachelor's degree or higher share",
             numerator=graduates, denominator=education_base,
             numerator_key="bachelors_or_higher", denominator_key="adults_25_plus",
+        ),
+        ratio_value(
+            key="rent_burden_share", label="Rent-burdened renter share",
+            numerator=rent_burdened, denominator=rent_burden_base,
+            numerator_key="rent_burdened_households", denominator_key="renter_households_with_rent_data",
+        ),
+        ratio_value(
+            key="unemployment_rate", label="Unemployment rate",
+            numerator=unemployed, denominator=labor_force,
+            numerator_key="unemployed_people", denominator_key="civilian_labor_force",
         ),
     ]
 

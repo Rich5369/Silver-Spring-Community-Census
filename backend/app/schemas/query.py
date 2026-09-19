@@ -48,6 +48,8 @@ class Intent(str, Enum):
     HEALTH_ACCESS = "health_access"
     FACILITIES = "facilities"
     EDUCATION = "education"
+    HOUSING_COSTS = "housing_costs"
+    UNEMPLOYMENT = "unemployment"
 
 
 #: The only geography the MVP has data for.
@@ -84,6 +86,9 @@ SUGGESTED_QUESTIONS: tuple[str, ...] = (
     "Are local businesses declining?",
     "Are there signs of displacement?",
     "What public facilities are near residents?",
+    "How many households are cost-burdened by rent?",
+    "What is the unemployment rate?",
+    "How has unemployment changed over time?",
 )
 
 

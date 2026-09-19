@@ -99,6 +99,8 @@ _INTENT_METRICS: dict[Intent, tuple[str, ...]] = {
     Intent.BUSINESS_HEALTH: (),
     Intent.HEALTH_ACCESS: (),
     Intent.EDUCATION: ("bachelors_or_higher_share",),
+    Intent.HOUSING_COSTS: ("rent_burdened_households", "rent_burden_share"),
+    Intent.UNEMPLOYMENT: ("civilian_labor_force", "unemployed_people", "unemployment_rate"),
 }
 
 _INTENT_RANGES: dict[Intent, tuple[str, ...]] = {
@@ -218,6 +220,10 @@ def _civic_answer(intent: Intent, insights: InsightsResponse, trend_years: list[
         return "The strongest current support signals are housing tenure, language, age, and mobility indicators. These can help target outreach and service design; they do not by themselves prove unmet need or determine funding."
     if intent is Intent.EDUCATION:
         return "The dataset reports the share of adults with a bachelor's degree or higher. It does not report school departures, dropout counts, graduation rates, or current enrollment, so those require school-district data."
+    if intent is Intent.HOUSING_COSTS:
+        return "The ACS reports renter households spending 35 percent or more of income on gross rent. This is a housing-cost pressure indicator, not a complete affordability or displacement finding."
+    if intent is Intent.UNEMPLOYMENT:
+        return "The ACS reports unemployment among the civilian labor force for the study-area tracts. It is a five-year survey estimate, not a monthly labor-market series."
     return "This civic summary combines population, housing, community composition, ACS change, and mapped-area context. Each reported value is returned with its source evidence."
     return (
         "The data cannot identify which business will be successful or recommend "
@@ -274,7 +280,7 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
         facilities = [FacilityOut(id=row.id, name=row.name, facility_type=row.facility_type, latitude=row.latitude, longitude=row.longitude, address=row.address, source=f"{row.data_source.organization} ({row.external_id})", source_url=row.data_source.source_url) for row in rows]
         answer = f"{len(facilities)} {requested_type or 'civic facilities'} are mapped in the current OpenStreetMap snapshot. This is an inventory signal, not a complete official register."
         limitations.append("OpenStreetMap coverage may be incomplete; verify against the relevant county or state register.")
-    elif intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW, Intent.POLICY_SUPPORT, Intent.COMMUNITY_SUPPORT, Intent.BUSINESS_HEALTH, Intent.HEALTH_ACCESS, Intent.EDUCATION):
+    elif intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW, Intent.POLICY_SUPPORT, Intent.COMMUNITY_SUPPORT, Intent.BUSINESS_HEALTH, Intent.HEALTH_ACCESS, Intent.EDUCATION, Intent.HOUSING_COSTS, Intent.UNEMPLOYMENT):
         metrics = _select(insights.community_snapshot, _INTENT_METRICS[intent])
         answer = _civic_answer(intent, insights, sorted({point.year for series in trends for point in series.points}))
         for metric in metrics:

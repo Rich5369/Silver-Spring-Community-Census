@@ -110,6 +110,11 @@ area?” and returns facility records with coordinates and OpenStreetMap
 provenance. OSM is a mapped inventory, not a complete official register;
 verify civic decisions against county and state records.
 
+The ACS catalogue also includes rent burden and unemployment metrics. Example
+questions include “How many households are cost-burdened by rent?” and “What
+is the unemployment rate?” These are ACS 5-year estimates aggregated across
+the project tracts, not monthly labor data or a complete displacement finding.
+
 To build historical ACS coverage for government trend views, ingest supported
 5-year vintages separately. Each run keeps its year as part of the evidence
 source and is safe to repeat:
