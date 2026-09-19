@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import AskCommunity from './components/AskCommunity';
-import InsightsPanel from './components/InsightsPanel';
+import OpportunityExplorer from './components/OpportunityExplorer';
+import GovernmentPlanningPanel from './components/GovernmentPlanningPanel';
+import { answerAreaQuestion } from './services/areaQuestion';
 import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
 import { buildBusinessFilters, queryBusinesses } from './services/businessQuery';
@@ -18,6 +20,13 @@ function App() {
   const [queryState, setQueryState] = useState({ status: 'idle', result: null, error: null });
   const [governmentSummary, setGovernmentSummary] = useState(null);
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
+  const requestVersion = useRef(0);
+  const selectArea = (area) => {
+    requestVersion.current += 1;
+    setSelectedGeoJsonArea(area);
+    setQueryState({ status: 'idle', result: null, error: null });
+    setQuestion('');
+  };
   useEffect(() => {
     let active = true;
     getGovernmentSummary()
@@ -25,15 +34,6 @@ function App() {
       .catch(() => { if (active) setGovernmentSummary(null); });
     return () => { active = false; };
   }, []);
-  // Once the default profile is a real tract, selecting that same tract would
-  // otherwise compare it against itself.
-  const comparisonAreas = useMemo(
-    () => [data.profile, selectedGeoJsonArea].filter(
-      (area, index, areas) => Boolean(area)
-        && (index === 0 || area.areaId !== areas[0]?.areaId),
-    ),
-    [data.profile, selectedGeoJsonArea],
-  );
   const queryBusinessIds = queryState.result?.parsed?.intent === 'nearby_businesses'
     ? new Set((queryState.result.businesses ?? []).map((business) => business.id))
     : null;
@@ -60,21 +60,26 @@ function App() {
 
   const exploreFentonVillage = () => {
     clearFilters();
-    setSelectedGeoJsonArea(null);
+    selectArea(null);
     setFentonExploreKey((key) => key + 1);
   };
 
   const askQuestion = async () => {
     const submitted = question.trim();
     if (!submitted) return;
+    const version = ++requestVersion.current;
     setQueryState({ status: 'loading', result: null, error: null });
     try {
-      const result = await askCommunityQuestion(submitted);
+      const result = selectedGeoJsonArea
+        ? answerAreaQuestion(submitted, selectedGeoJsonArea)
+        : await askCommunityQuestion(submitted);
+      if (version !== requestVersion.current) return;
       setQueryState({ status: 'success', result, error: null });
       setActiveFilter('all');
       setSearchTerm('');
-      setFentonExploreKey((key) => key + 1);
+      if (!selectedGeoJsonArea) setFentonExploreKey((key) => key + 1);
     } catch (error) {
+      if (version !== requestVersion.current) return;
       setQueryState({ status: 'error', result: null, error });
     }
   };
@@ -83,22 +88,6 @@ function App() {
     <div className="app-shell">
       <Header />
       <main className="workspace">
-        <AskCommunity
-          question={question}
-          onQuestionChange={setQuestion}
-          onAsk={askQuestion}
-          status={queryState.status}
-          result={queryState.result}
-          error={queryState.error}
-        />
-        <InsightsPanel
-          insights={selectedInsights}
-          comparisonAreas={comparisonAreas}
-          businesses={data.businesses}
-          governmentSummary={governmentSummary}
-          isAreaSelected={Boolean(selectedGeoJsonArea)}
-          hasQueryResult={Boolean(queryState.result)}
-        />
         <QueryPanel
           activeFilter={activeFilter}
           filters={filters}
@@ -122,13 +111,28 @@ function App() {
             communityGeoJson={data.communityGeoJson}
             selectedAreaId={selectedGeoJsonArea?.areaId ?? null}
             highlightedAreaIds={queryState.result?.map?.area_geoids ?? []}
-            onAreaSelect={setSelectedGeoJsonArea}
-            onDefaultAreaSelect={() => setSelectedGeoJsonArea(null)}
+            onAreaSelect={selectArea}
+            onDefaultAreaSelect={() => selectArea(null)}
             onExploreFenton={exploreFentonVillage}
             exploreKey={fentonExploreKey}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
           />
+          <AskCommunity
+            question={question}
+            onQuestionChange={setQuestion}
+            onAsk={askQuestion}
+            status={queryState.status}
+            result={queryState.result}
+            error={queryState.error}
+            areaName={selectedGeoJsonArea?.areaName ?? 'Fenton Village, Silver Spring, Maryland'}
+            isAreaSelected={Boolean(selectedGeoJsonArea)}
+          />
         </div>
+        <details className="exploration-tools">
+          <summary>Business Opportunity Explorer and planning context</summary>
+          <OpportunityExplorer insights={data.profile} businesses={data.businesses} />
+          <GovernmentPlanningPanel summary={governmentSummary} />
+        </details>
       </main>
     </div>
   );
