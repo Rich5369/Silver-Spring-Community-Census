@@ -19,6 +19,31 @@ const ENDPOINTS = {
   governmentSummary: '/api/v1/government/summary',
 };
 
+/**
+ * In-flight and resolved GET responses, keyed by path.
+ *
+ * Every dataset here is read-only for the life of the page, so a second caller
+ * joins the first request instead of issuing its own. The shared promise is
+ * deliberately not tied to any one caller's abort signal: a consumer that goes
+ * away must not cancel a request another consumer is still waiting on, and an
+ * aborted fetch surfacing as a rejection would drop the app to demo data.
+ * Consumers still guard their own `setState` with their own abort flag.
+ *
+ * Rejections are evicted so a failed request can be retried; successes are
+ * kept for the session.
+ */
+const sharedRequests = new Map();
+
+function sharedJson(path) {
+  if (!sharedRequests.has(path)) {
+    sharedRequests.set(path, requestJson(path).catch((error) => {
+      sharedRequests.delete(path);
+      throw error;
+    }));
+  }
+  return sharedRequests.get(path);
+}
+
 async function requestJson(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -34,15 +59,15 @@ async function requestJson(path, options = {}) {
 }
 
 export async function getGovernmentSummary() {
-  return requestJson(ENDPOINTS.governmentSummary);
+  return sharedJson(ENDPOINTS.governmentSummary);
 }
 
 export async function getGovernmentTrends() {
-  return requestJson('/api/v1/government/trends');
+  return sharedJson('/api/v1/government/trends');
 }
 
 export async function getGovernmentServiceRequests() {
-  return requestJson('/api/v1/government/service-requests');
+  return sharedJson('/api/v1/government/service-requests');
 }
 
 function malformedResponse(resource) {
@@ -140,7 +165,19 @@ export function normalizeBusinessCategories(payload) {
   return normalized;
 }
 
-export function normalizeCommunityMap(payload) {
+/**
+ * @param {object} payload            GET /api/v1/map/community
+ * @param {object} [options]
+ * @param {boolean} [options.includeBusinesses]
+ *   The map payload repeats the whole business layer that GET
+ *   /api/v1/businesses already serves, and the app reads the records from that
+ *   endpoint instead - it is the one record of truth for the business layer.
+ *   Normalizing the repeated copy only to discard it costs a few hundred
+ *   kilobytes of parsing on the main thread during load, so the app opts out
+ *   and takes the areas alone. Callers that want the records (the data
+ *   pipeline check) get them by leaving this true.
+ */
+export function normalizeCommunityMap(payload, { includeBusinesses = true } = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     throw malformedResponse('community map');
   }
@@ -149,7 +186,7 @@ export function normalizeCommunityMap(payload) {
   }
 
   return {
-    businesses: normalizeMapBusinesses(payload.businesses),
+    businesses: includeBusinesses ? normalizeMapBusinesses(payload.businesses) : [],
     communityGeoJson: payload.areas,
   };
 }
@@ -366,26 +403,26 @@ export function normalizeSources(payload) {
   }));
 }
 
-export async function getBusinesses(options = {}) {
+export async function getBusinesses() {
   if (!isApiConfigured) return mockBusinesses;
-  return normalizeBusinesses(await requestJson(ENDPOINTS.businesses, options));
+  return normalizeBusinesses(await sharedJson(ENDPOINTS.businesses));
 }
 
-export async function getBusinessCategories(options = {}) {
+export async function getBusinessCategories() {
   if (!isApiConfigured) return countBusinessesByCategory(mockBusinesses);
-  return normalizeBusinessCategories(await requestJson(ENDPOINTS.businessCategories, options));
+  return normalizeBusinessCategories(await sharedJson(ENDPOINTS.businessCategories));
 }
 
-export async function getCommunityMap(options = {}) {
+export async function getCommunityMap() {
   if (!isApiConfigured) {
     return { businesses: mockBusinesses, communityGeoJson: null };
   }
-  return normalizeCommunityMap(await requestJson(ENDPOINTS.communityMap, options));
+  return normalizeCommunityMap(await sharedJson(ENDPOINTS.communityMap), { includeBusinesses: false });
 }
 
-export async function getCommunityProfile(area, options = {}) {
+export async function getCommunityProfile(area) {
   if (!isApiConfigured) return null;
-  return normalizeCommunityProfile(await requestJson(ENDPOINTS.communityProfile, options), area);
+  return normalizeCommunityProfile(await sharedJson(ENDPOINTS.communityProfile), area);
 }
 
 export async function askCommunityQuestion(question, options = {}) {
