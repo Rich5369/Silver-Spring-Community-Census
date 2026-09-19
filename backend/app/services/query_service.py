@@ -98,6 +98,7 @@ _INTENT_METRICS: dict[Intent, tuple[str, ...]] = {
     Intent.COMMUNITY_SUPPORT: ("renter_share", "multilingual_household_share", "commute_active_share"),
     Intent.BUSINESS_HEALTH: (),
     Intent.HEALTH_ACCESS: (),
+    Intent.EDUCATION: ("bachelors_or_higher_share",),
 }
 
 _INTENT_RANGES: dict[Intent, tuple[str, ...]] = {
@@ -215,6 +216,8 @@ def _civic_answer(intent: Intent, insights: InsightsResponse, trend_years: list[
         return "The platform can support policy scoping, not choose policy for officials. It shows who lives in the study area, housing and mobility context, observed change, and where evidence coverage is incomplete. Pair these signals with program, permit, and public-health data before implementing a policy."
     if intent is Intent.COMMUNITY_SUPPORT:
         return "The strongest current support signals are housing tenure, language, age, and mobility indicators. These can help target outreach and service design; they do not by themselves prove unmet need or determine funding."
+    if intent is Intent.EDUCATION:
+        return "The dataset reports the share of adults with a bachelor's degree or higher. It does not report school departures, dropout counts, graduation rates, or current enrollment, so those require school-district data."
     return "This civic summary combines population, housing, community composition, ACS change, and mapped-area context. Each reported value is returned with its source evidence."
     return (
         "The data cannot identify which business will be successful or recommend "
@@ -263,7 +266,7 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
         limitations.append(MEDIAN_LIMITATION)
 
     if intent is Intent.FACILITIES:
-        requested_type = next((kind for kind in ("school", "library", "park", "hospital", "clinic", "transit") if kind in question.lower()), None)
+        requested_type = next((kind for kind in ("school", "church", "library", "park", "hospital", "clinic", "transit") if kind in question.lower()), None)
         query = session.query(Facility)
         if requested_type:
             query = query.filter(Facility.facility_type == requested_type)
@@ -271,7 +274,7 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
         facilities = [FacilityOut(id=row.id, name=row.name, facility_type=row.facility_type, latitude=row.latitude, longitude=row.longitude, address=row.address, source=f"{row.data_source.organization} ({row.external_id})", source_url=row.data_source.source_url) for row in rows]
         answer = f"{len(facilities)} {requested_type or 'civic facilities'} are mapped in the current OpenStreetMap snapshot. This is an inventory signal, not a complete official register."
         limitations.append("OpenStreetMap coverage may be incomplete; verify against the relevant county or state register.")
-    elif intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW, Intent.POLICY_SUPPORT, Intent.COMMUNITY_SUPPORT, Intent.BUSINESS_HEALTH, Intent.HEALTH_ACCESS):
+    elif intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW, Intent.POLICY_SUPPORT, Intent.COMMUNITY_SUPPORT, Intent.BUSINESS_HEALTH, Intent.HEALTH_ACCESS, Intent.EDUCATION):
         metrics = _select(insights.community_snapshot, _INTENT_METRICS[intent])
         answer = _civic_answer(intent, insights, sorted({point.year for series in trends for point in series.points}))
         for metric in metrics:
