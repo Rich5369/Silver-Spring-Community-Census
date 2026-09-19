@@ -85,7 +85,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .eyebrow-dot { display: inline-block; width: 7px; height: 7px; margin: 0 7px 1px 0; border-radius: 50%; background: #67a57e; box-shadow: 0 0 0 4px rgb(103 165 126 / 14%); }
 .site-header .eyebrow { color: #6c6e69; }
 
-.location-label { margin-left: auto; display: flex; align-items: center; gap: 8px; color: #555651; font-size: 13px; }
+.location-label { margin-left: auto; display: flex; align-items: center; gap: 8px; color: #555651; font-size: 13px; white-space: nowrap; }
+.location-flag { width: 24px; height: 15px; flex: 0 0 auto; border: 1px solid rgb(20 20 18 / 22%); border-radius: 2px; transform-origin: left center; animation: flag-breathe 5.5s ease-in-out infinite; }
+.location-short { display: none; }
+@keyframes flag-breathe { 0%, 100% { transform: perspective(40px) rotateY(0deg) translateY(0); } 50% { transform: perspective(40px) rotateY(-7deg) translateY(-1px); } }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #91d0a8; box-shadow: 0 0 0 4px rgb(145 208 168 / 12%); }
 
 .workspace { padding: 22px clamp(24px, 4vw, 64px) 38px; scroll-margin-top: 12px; }
@@ -454,8 +457,23 @@ p.section-loading { padding: 20px 0; }
   .community-context-details > * { grid-column: 1; }
 }
 
+@media (min-width: 901px) and (max-width: 1120px) {
+  .home-intro { gap: 34px; padding-right: 64px; padding-left: 64px; }
+  .content-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, 32%); }
+  .content-grid > .ask-community { padding: 16px; }
+  .evidence-bar { padding-right: 64px; padding-left: 64px; }
+  .evidence-bar > p { display: none; }
+}
+
 @media (max-width: 600px) {
   .site-header, .workspace { padding-right: 18px; padding-left: 18px; }
+  .site-header { min-height: 64px; gap: 9px; padding-top: 11px; padding-bottom: 11px; }
+  .brand-mark { width: 34px; height: 34px; font-size: 11px; }
+  .brand-copy h1 { font-size: clamp(16px, 5vw, 20px); line-height: 1.05; }
+  .site-header .eyebrow { display: none; }
+  .location-label { padding: 5px 7px; font-size: 10px; }
+  .location-full { display: none; }
+  .location-short { display: inline; }
   .home-intro { padding: 34px 18px 30px; }
   .hero-copy h2 { font-size: clamp(32px, 11vw, 44px); }
   .hero-actions { align-items: stretch; flex-direction: column; }
@@ -469,7 +487,6 @@ p.section-loading { padding: 20px 0; }
   .current-area { align-items: flex-start; flex-direction: column; gap: 3px; }
   .business-explorer-callout { align-items: stretch; flex-direction: column; }
   .business-explorer-callout button { min-height: 46px; }
-  .location-label { display: none; }
   .business-map-view { height: 400px; }
   .business-map-view.expanded { height: clamp(480px, 68vh, 620px); }
   .map-toolbar { height: auto; min-height: 76px; align-items: flex-start; flex-direction: column; }
@@ -499,8 +516,30 @@ p.section-loading { padding: 20px 0; }
   .trend-chart { min-width: 0; }
 }
 
+@media (max-width: 480px) {
+  .workspace { padding-right: 12px; padding-left: 12px; }
+  .home-intro { padding: 46px 16px 34px; }
+  .hero-copy h2 { max-width: 12ch; font-size: clamp(38px, 12vw, 52px); }
+  .hero-lede { margin-top: 17px; font-size: 15px; }
+  .home-purpose { padding-top: 18px; }
+  .capability-grid { gap: 6px; }
+  .capability-grid article { padding: 10px 4px; }
+  .capability-grid h3 { font-size: 12px; }
+  .capability-grid p { font-size: 10px; }
+  .evidence-bar-stats strong { font-size: 18px; }
+  .evidence-bar-stats span { font-size: 9px; }
+  .map-layers-control { top: 6px; right: 6px; width: min(185px, calc(100% - 12px)); }
+  .map-legend { right: 6px; bottom: 6px; left: 6px; max-width: calc(100% - 12px); }
+  .business-map-view { height: 360px; }
+  .business-map-view.expanded { height: min(74vh, 580px); }
+  .trend-summary { gap: 6px; }
+  .trend-summary strong { font-size: 16px; }
+  .trend-evidence { overflow-wrap: anywhere; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  .location-flag { animation: none; }
 }
 
 /* Visual system: a quiet editorial shell around the working civic tools. */
