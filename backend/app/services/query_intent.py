@@ -81,6 +81,8 @@ _CATEGORY_SYNONYMS: tuple[tuple[str, str], ...] = (
 # Ordered most specific to most general; the first intent with a match wins.
 _INTENT_KEYWORDS: tuple[tuple[Intent, tuple[str, ...]], ...] = (
     (Intent.EDUCATION, ("education", "educational attainment", "schooling", "college", "degree", "bachelor", "left school", "finished school")),
+    (Intent.HOUSING_COSTS, ("housing cost", "rent burden", "rent burdened", "cost burden", "cost-burdened", "cost burdened", "affordability", "housing affordability")),
+    (Intent.UNEMPLOYMENT, ("unemployment", "unemployed", "jobless", "job market", "labor force")),
     (Intent.FACILITIES, ("school", "schools", "church", "churches", "library", "libraries", "parks", "park", "hospital", "hospitals", "clinic", "clinics", "public facilities", "transit stops", "bus stops", "community centers")),
     (Intent.HEALTH_ACCESS, ("hospital", "hospitals", "health care", "healthcare access", "clinic", "medical access", "declining health")),
     (Intent.BUSINESS_HEALTH, ("business failure", "businesses failing", "businesses declining", "business decline", "vacancies", "store closures", "business health")),

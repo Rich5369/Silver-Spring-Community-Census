@@ -99,6 +99,12 @@ ACS_VARIABLES: dict[str, AcsVariable] = {
             "Estimate!!Total:!!Renter occupied",
             "Renter-occupied households",
         ),
+        _v("B25070_001E", "Estimate!!Total: Gross rent as a percentage of household income", "Renter household rent-burden base"),
+        _v("B25070_008E", "Estimate!!35.0 to 39.9 percent", "Rent-burdened households"),
+        _v("B25070_009E", "Estimate!!40.0 to 49.9 percent", "Rent-burdened households"),
+        _v("B25070_010E", "Estimate!!50.0 percent or more", "Rent-burdened households"),
+        _v("B23025_003E", "Estimate!!Civilian labor force", "Civilian labor force"),
+        _v("B23025_005E", "Estimate!!Unemployed", "Unemployed population"),
         # B08301 - Means of Transportation to Work
         _v("B08301_001E", "Estimate!!Total:", "Workers aged 16+ (commute table base)"),
         _v(
@@ -300,6 +306,37 @@ METRIC_SPECS: tuple[MetricSpec, ...] = (
         kind="share",
         variable_ids=("B25003_003E",),
         denominator_id="B25003_001E",
+    ),
+    MetricSpec(
+        metric_key="rent_burdened_households",
+        description="Renter households spending 35 percent or more of income on gross rent",
+        unit="households", kind="sum",
+        variable_ids=("B25070_008E", "B25070_009E", "B25070_010E"),
+    ),
+    MetricSpec(
+        metric_key="renter_households_with_rent_data",
+        description="Renter households with gross-rent burden data",
+        unit="households", kind="direct", variable_ids=("B25070_001E",),
+    ),
+    MetricSpec(
+        metric_key="rent_burden_share",
+        description="Share of renter households spending 35 percent or more of income on gross rent",
+        unit="percent", kind="share",
+        variable_ids=("B25070_008E", "B25070_009E", "B25070_010E"),
+        denominator_id="B25070_001E",
+    ),
+    MetricSpec(
+        metric_key="civilian_labor_force", description="Civilian labor force",
+        unit="people", kind="direct", variable_ids=("B23025_003E",),
+    ),
+    MetricSpec(
+        metric_key="unemployed_people", description="Unemployed population",
+        unit="people", kind="direct", variable_ids=("B23025_005E",),
+    ),
+    MetricSpec(
+        metric_key="unemployment_rate", description="Unemployment rate among the civilian labor force",
+        unit="percent", kind="share", variable_ids=("B23025_005E",),
+        denominator_id="B23025_003E",
     ),
     # --- Commuting ----------------------------------------------------------
     MetricSpec(
