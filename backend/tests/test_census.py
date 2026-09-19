@@ -44,11 +44,13 @@ SAMPLE_VALUES: dict[str, str] = {
     "B01002_001E": "39.4",
     "B19013_001E": "129000",
     "B01001_001E": "1057586",
+    "B01001_007E": "5000",
     "B01001_008E": "6000",
     "B01001_009E": "6000",
     "B01001_010E": "18000",
     "B01001_011E": "35000",
     "B01001_012E": "38000",
+    "B01001_031E": "5000",
     "B01001_032E": "6000",
     "B01001_033E": "6000",
     "B01001_034E": "18000",
@@ -187,8 +189,9 @@ def test_direct_sum_and_share_metrics() -> None:
 
     assert metrics["total_population"] == 1057586.0
     assert metrics["median_household_income"] == 129000.0
-    # 6000+6000+18000+35000+38000 + 6000+6000+18000+36000+39000
-    assert metrics["young_adults_20_34"] == 208000.0
+    # male 18-19..30-34 = 5000+6000+6000+18000+35000+38000
+    # female 18-19..30-34 = 5000+6000+6000+18000+36000+39000
+    assert metrics["young_adults_18_34"] == 218000.0
     assert metrics["renter_occupied_households"] == 133000.0
     assert metrics["renter_share"] == round(133000 / 383000 * 100, 2)
     # public transport + bicycle + walked, over all workers
@@ -215,7 +218,7 @@ def test_partial_sum_is_reported_as_missing() -> None:
     values = {**SAMPLE_VALUES, "B01001_011E": "-666666666"}
     metrics = _metrics(values)
 
-    assert metrics["young_adults_20_34"] is None
+    assert metrics["young_adults_18_34"] is None
     assert metrics["young_adult_share"] is None
 
 
