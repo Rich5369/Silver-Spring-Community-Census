@@ -10,19 +10,30 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.database import get_session
 from app.main import create_app
 from app.models import Base
 
 
 @pytest.fixture
-def client() -> Iterator[TestClient]:
-    """A test client backed by a freshly built application instance.
+def client(db_session: Session) -> Iterator[TestClient]:
+    """A test client backed by the isolated test database.
 
-    Used as a context manager so that startup and shutdown hooks run, which
-    makes the request tests double as a smoke test of application lifespan.
+    ``get_session`` is overridden so route tests read the throwaway SQLite
+    file rather than the developer's ``data/community.db``. Without the
+    override the suite would depend on whatever happens to be ingested
+    locally, and would break whenever the schema moved ahead of that file.
+
+    Used as a context manager so startup and shutdown hooks run, which makes
+    the request tests double as a smoke test of application lifespan.
     """
-    with TestClient(create_app()) as test_client:
-        yield test_client
+    app = create_app()
+    app.dependency_overrides[get_session] = lambda: db_session
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture

@@ -24,6 +24,38 @@ class GeographyRepository(BaseRepository[Geography]):
             .all()
         )
 
+    def list_with_geometry(self) -> list[Geography]:
+        """Every area that has a stored boundary, ordered for stable output."""
+        return list(
+            self.session.query(Geography)
+            .filter(Geography.geometry_geojson.isnot(None))
+            .order_by(Geography.geoid)
+            .all()
+        )
+
+    def set_geometry(
+        self, *, geoid: str, geometry_geojson: str, geometry_source_id: int
+    ) -> Geography | None:
+        """Attach a boundary and its provenance to an existing geography.
+
+        Matched on GEOID rather than name: tract names are not stable or
+        unique across vintages, while the GEOID is the Census's own key.
+        Returns ``None`` if no such geography has been ingested, so the
+        caller can report the mismatch instead of silently creating a
+        boundary with no metrics behind it.
+        """
+        geography = self.get_by_geoid(geoid)
+        if geography is None:
+            return None
+        geography.geometry_geojson = geometry_geojson
+        geography.geometry_source_id = geometry_source_id
+        self.session.flush()
+        # Refresh so the eagerly-loaded ``geometry_source`` relationship
+        # reflects the id just assigned; without this the caller sees the
+        # stale value it was loaded with.
+        self.session.refresh(geography)
+        return geography
+
     def upsert(
         self,
         *,
