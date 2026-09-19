@@ -92,6 +92,23 @@ The frontend uses the backend's versioned API contract:
 - `GET /api/v1/map/community`
 - `GET /api/v1/insights/fenton-village`
 - `GET /api/v1/government/summary`
+- `GET /api/v1/facilities?type=school`
+
+### Civic facilities
+
+Facilities are ingested separately from businesses so schools, parks,
+libraries, clinics, hospitals, community centers, and transit stops do not
+distort business counts. Refresh the stored OpenStreetMap inventory from the
+backend directory with:
+
+```bash
+python scripts/ingest_facilities.py
+```
+
+The query endpoint recognizes questions such as “How many schools are in the
+area?” and returns facility records with coordinates and OpenStreetMap
+provenance. OSM is a mapped inventory, not a complete official register;
+verify civic decisions against county and state records.
 
 To build historical ACS coverage for government trend views, ingest supported
 5-year vintages separately. Each run keeps its year as part of the evidence

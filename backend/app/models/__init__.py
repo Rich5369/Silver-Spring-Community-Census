@@ -9,6 +9,7 @@ from app.models.business import Business
 from app.models.community_metric import CommunityMetric
 from app.models.data_source import DataSource
 from app.models.geography import GEOGRAPHY_TYPES, Geography
+from app.models.facility import Facility
 
 __all__ = [
     "Base",
@@ -16,5 +17,6 @@ __all__ = [
     "CommunityMetric",
     "DataSource",
     "Geography",
+    "Facility",
     "GEOGRAPHY_TYPES",
 ]

@@ -18,6 +18,7 @@ from app.schemas.evidence import Evidence
 from app.schemas.geojson import FeatureCollection
 from app.schemas.insights import CategoryBreakdown, SnapshotValue, ValueRange
 from app.schemas.trends import TrendSeries
+from app.schemas.facility import FacilityOut
 
 
 class Intent(str, Enum):
@@ -45,6 +46,7 @@ class Intent(str, Enum):
     COMMUNITY_SUPPORT = "community_support"
     BUSINESS_HEALTH = "business_health"
     HEALTH_ACCESS = "health_access"
+    FACILITIES = "facilities"
 
 
 #: The only geography the MVP has data for.
@@ -70,6 +72,8 @@ SUGGESTED_QUESTIONS: tuple[str, ...] = (
     "How can the city support this community?",
     "Are local businesses declining?",
     "Is access to health care declining?",
+    "How many schools are in the area?",
+    "Where are the nearby public facilities?",
 )
 
 
@@ -150,6 +154,7 @@ class QueryResponse(BaseModel):
     map: QueryMap = Field(default_factory=QueryMap)
     evidence: list[Evidence] = Field(default_factory=list)
     trends: list[TrendSeries] = Field(default_factory=list)
+    facilities: list[FacilityOut] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     suggestions: list[str] = Field(
         default_factory=list,
