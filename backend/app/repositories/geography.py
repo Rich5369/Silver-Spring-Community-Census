@@ -24,6 +24,24 @@ class GeographyRepository(BaseRepository[Geography]):
             .all()
         )
 
+    def list_areas(
+        self,
+        *,
+        geography_type: str | None = None,
+        with_boundary_only: bool = False,
+        limit: int | None = None,
+    ) -> list[Geography]:
+        """Filtered list of areas, ordered by GEOID for stable paging."""
+        stmt = self.session.query(Geography)
+        if geography_type:
+            stmt = stmt.filter(Geography.geography_type == geography_type)
+        if with_boundary_only:
+            stmt = stmt.filter(Geography.geometry_geojson.isnot(None))
+        stmt = stmt.order_by(Geography.geoid)
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        return list(stmt.all())
+
     def list_with_geometry(self) -> list[Geography]:
         """Every area that has a stored boundary, ordered for stable output."""
         return list(

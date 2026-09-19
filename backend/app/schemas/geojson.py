@@ -10,6 +10,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.evidence import Evidence
+
 #: Geometry types RFC 7946 permits for an area boundary.
 POLYGON_TYPES: frozenset[str] = frozenset({"Polygon", "MultiPolygon"})
 
@@ -21,18 +23,11 @@ class Geometry(BaseModel):
     coordinates: list[Any]
 
 
-class MetricEvidence(BaseModel):
-    """The citation behind one metric value.
-
-    Carried per metric rather than per feature because a feature's values can
-    come from different datasets or vintages.
-    """
-
-    dataset: str
-    dataset_year: int | None = None
-    source_variable: str | None = None
-    source_url: str
-    organization: str
+#: The citation behind one value. Carried per metric rather than per feature
+#: because a feature's values can come from different datasets or vintages.
+#: Aliased to the shared :class:`~app.schemas.evidence.Evidence` so GeoJSON
+#: and the v1 JSON endpoints cite identically.
+MetricEvidence = Evidence
 
 
 class MetricValue(BaseModel):
@@ -41,6 +36,17 @@ class MetricValue(BaseModel):
     value: float | None
     unit: str | None = None
     evidence: MetricEvidence
+
+
+class BusinessFeatureInfo(BaseModel):
+    """Business details carried on a Point feature."""
+
+    id: int
+    category: str
+    address: str | None = None
+    source: str
+    source_url: str
+    source_tag: str | None = None
 
 
 class FeatureProperties(BaseModel):
@@ -59,6 +65,8 @@ class FeatureProperties(BaseModel):
     #: Provenance for the boundary itself, distinct from the metrics'.
     boundary_source: MetricEvidence | None = None
     metrics: dict[str, MetricValue] = Field(default_factory=dict)
+    #: Present only on business Point features.
+    business: BusinessFeatureInfo | None = None
 
 
 class Feature(BaseModel):

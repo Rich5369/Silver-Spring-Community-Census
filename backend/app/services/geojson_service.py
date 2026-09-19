@@ -12,8 +12,13 @@ import json
 from sqlalchemy.orm import Session
 
 from app.models import CommunityMetric, Geography
-from app.repositories import CommunityMetricRepository, GeographyRepository
+from app.repositories import (
+    BusinessRepository,
+    CommunityMetricRepository,
+    GeographyRepository,
+)
 from app.schemas.geojson import (
+    BusinessFeatureInfo,
     Feature,
     FeatureCollection,
     FeatureProperties,
@@ -21,6 +26,7 @@ from app.schemas.geojson import (
     MetricEvidence,
     MetricValue,
 )
+from app.schemas.map import CommunityMapResponse
 
 
 def _evidence(metric: CommunityMetric) -> MetricEvidence:
@@ -91,6 +97,53 @@ def build_feature(session: Session, geography: Geography) -> Feature | None:
             boundary_source=_boundary_evidence(geography),
             metrics=metrics,
         ),
+    )
+
+
+def build_business_features(session: Session) -> FeatureCollection:
+    """Businesses as GeoJSON Points.
+
+    A separate collection from the area polygons: the two layers are drawn
+    differently, and RFC 7946 position order is ``[longitude, latitude]`` -
+    the reverse of Leaflet's own ``[lat, lng]``, which is a classic source of
+    markers landing in the wrong hemisphere.
+    """
+    features = [
+        Feature(
+            id=business.external_id,
+            geometry=Geometry(
+                type="Point", coordinates=[business.longitude, business.latitude]
+            ),
+            properties=FeatureProperties(
+                geoid=business.external_id,
+                name=business.name,
+                geography_type="business",
+                boundary_source=None,
+                metrics={},
+                business=BusinessFeatureInfo(
+                    id=business.id,
+                    category=business.category,
+                    address=business.address,
+                    source=business.source,
+                    source_url=business.source_url,
+                    source_tag=business.source_tag,
+                ),
+            ),
+        )
+        for business in BusinessRepository(session).search()
+    ]
+    return FeatureCollection(features=features)
+
+
+def build_community_map(session: Session) -> CommunityMapResponse:
+    """Both map layers in one payload."""
+    areas = build_feature_collection(session)
+    businesses = build_business_features(session)
+    return CommunityMapResponse(
+        areas=areas,
+        businesses=businesses,
+        area_count=len(areas.features),
+        business_count=len(businesses.features),
     )
 
 
