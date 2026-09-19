@@ -13,12 +13,29 @@ This is the scaffold only. Data ingestion is not implemented yet.
 
 From the `backend/` directory:
 
+macOS / Linux:
+
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # optional — defaults work out of the box
 ```
+
+Windows (PowerShell):
+
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+copy .env.example .env      # optional
+```
+
+On Debian/Ubuntu, `python3.12 -m venv` needs the venv package first:
+`sudo apt-get update && sudo apt-get install -y python3.12-venv`.
+
+No API keys are required. The Census API serves 500 requests/day unkeyed, and
+TIGERweb and Overpass need no credentials at all.
 
 ## Run
 
