@@ -3,6 +3,7 @@ import Header from './components/Header';
 import AskCommunity from './components/AskCommunity';
 import OpportunityExplorer from './components/OpportunityExplorer';
 import GovernmentPlanningPanel from './components/GovernmentPlanningPanel';
+import PlanningTrends from './components/PlanningTrends';
 import { answerAreaQuestion } from './services/areaQuestion';
 import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
@@ -132,6 +133,12 @@ function App() {
             isAreaSelected={Boolean(selectedGeoJsonArea)}
           />
         </div>
+        <PlanningTrends
+          insights={selectedInsights}
+          trends={governmentTrends}
+          trendGeography={governmentSummary?.study_area?.study_area?.name}
+          businessCount={data.businesses.length}
+        />
         <details className="exploration-tools">
           <summary>Business Opportunity Explorer and planning context</summary>
           <OpportunityExplorer insights={data.profile} businesses={data.businesses} />

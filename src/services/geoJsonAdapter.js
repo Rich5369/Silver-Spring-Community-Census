@@ -118,6 +118,7 @@ export function normalizeGeoJsonArea(feature) {
       return {
         id: key,
         label,
+        rawValue: value,
         value: value === null ? 'Data unavailable' : format(value),
         note: metric?.evidence?.dataset_year
           ? `${metric.evidence.dataset} (${metric.evidence.dataset_year})`
@@ -129,6 +130,7 @@ export function normalizeGeoJsonArea(feature) {
       {
         id: 'population',
         label: 'Population',
+        rawValue: finiteNumber(properties.population),
         value: finiteNumber(properties.population) === null
           ? 'Data unavailable'
           : formatInteger(finiteNumber(properties.population)),
@@ -138,6 +140,7 @@ export function normalizeGeoJsonArea(feature) {
       {
         id: 'income',
         label: 'Median household income',
+        rawValue: finiteNumber(properties.medianIncome),
         value: finiteNumber(properties.medianIncome) === null
           ? 'Data unavailable'
           : formatCurrency(finiteNumber(properties.medianIncome)),

@@ -225,7 +225,14 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       const note = source === 'range'
         ? `Range across ${item.coverage?.tracts_with_data ?? 0} tracts`
         : 'US Census Bureau ACS';
-      return [{ id: key, label: item.label, value, note, sourceIds: cite(item) }];
+      return [{
+        id: key,
+        label: item.label,
+        value,
+        rawValue: source === 'metric' ? finiteNumber(item.value) : null,
+        note,
+        sourceIds: cite(item),
+      }];
     });
 
     return {
@@ -266,10 +273,11 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
   const statistics = profile.statistics ?? {};
   const language = statistics.language ?? {};
   const statisticSources = profile.statisticSources ?? {};
-  const stat = (id, label, value) => ({
+  const stat = (id, label, value, rawValue = null) => ({
     id,
     label,
     value,
+    rawValue,
     note: 'Backend response',
     sourceIds: Array.isArray(statisticSources[id]) ? statisticSources[id].map(String) : [],
   });
@@ -280,8 +288,8 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
     dataStatus: String(profile.dataStatus || 'Connected data — verification status not provided'),
     summary: String(profile.summary || 'Community summary not provided.'),
     stats: [
-      stat('population', 'Population', formatInteger(finiteNumber(statistics.population))),
-      stat('income', 'Median household income', formatCurrency(finiteNumber(statistics.medianHouseholdIncome))),
+      stat('population', 'Population', formatInteger(finiteNumber(statistics.population)), finiteNumber(statistics.population)),
+      stat('income', 'Median household income', formatCurrency(finiteNumber(statistics.medianHouseholdIncome)), finiteNumber(statistics.medianHouseholdIncome)),
       stat(
         'language',
         String(language.label || 'Language statistic'),
