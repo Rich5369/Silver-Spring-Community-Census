@@ -69,16 +69,27 @@ function App() {
   };
   useEffect(() => {
     let active = true;
-    getGovernmentSummary()
-      .then((summary) => { if (active) setGovernmentSummary(summary); })
-      .catch(() => { if (active) setGovernmentSummary(null); });
-    getGovernmentTrends()
-      .then((trends) => { if (active) setGovernmentTrends(trends); })
-      .catch(() => { if (active) setGovernmentTrends(null); });
-    getGovernmentServiceRequests()
-      .then((requests) => { if (active) setServiceRequests(requests); })
-      .catch(() => { if (active) setServiceRequests(null); });
-    return () => { active = false; };
+    const loadPlanningData = () => {
+      getGovernmentSummary()
+        .then((summary) => { if (active) setGovernmentSummary(summary); })
+        .catch(() => { if (active) setGovernmentSummary(null); });
+      getGovernmentTrends()
+        .then((trends) => { if (active) setGovernmentTrends(trends); })
+        .catch(() => { if (active) setGovernmentTrends(null); });
+      getGovernmentServiceRequests()
+        .then((requests) => { if (active) setServiceRequests(requests); })
+        .catch(() => { if (active) setServiceRequests(null); });
+    };
+    // Let the map and core community data paint first. Planning panels are
+    // below the fold and do not belong on the critical loading path.
+    const idle = window.requestIdleCallback
+      ? window.requestIdleCallback(loadPlanningData, { timeout: 1200 })
+      : window.setTimeout(loadPlanningData, 250);
+    return () => {
+      active = false;
+      window.cancelIdleCallback?.(idle);
+      window.clearTimeout(idle);
+    };
   }, []);
   useEffect(() => {
     const idle = window.requestIdleCallback ?? ((callback) => setTimeout(callback, 200));
