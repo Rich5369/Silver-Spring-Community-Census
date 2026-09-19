@@ -17,6 +17,7 @@ function MapPanel({
   evidenceSources = [],
   communityGeoJson = null,
   selectedAreaId = null,
+  highlightedAreaIds = [],
   onAreaSelect,
   onDefaultAreaSelect,
   onExploreFenton,
@@ -134,6 +135,7 @@ function MapPanel({
           evidenceSources={evidenceSources}
           communityGeoJson={communityGeoJson}
           selectedAreaId={selectedAreaId}
+          highlightedAreaIds={highlightedAreaIds}
           selectedBusinessId={selectedBusinessId}
           onBusinessSelect={setSelectedBusinessId}
           onAreaSelect={onAreaSelect}

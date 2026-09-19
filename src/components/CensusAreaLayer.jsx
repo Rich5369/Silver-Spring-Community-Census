@@ -19,13 +19,23 @@ const selectedStyle = {
   weight: 4,
 };
 
-function CensusAreaLayer({ data, selectedAreaId = null, onAreaSelect }) {
+const highlightedStyle = {
+  color: '#286b4c',
+  fillColor: '#55a276',
+  fillOpacity: 0.38,
+  weight: 3,
+};
+
+function CensusAreaLayer({ data, selectedAreaId = null, highlightedAreaIds = [], onAreaSelect }) {
   const safeData = sanitizeGeoJsonFeatureCollection(data);
   if (!safeData) return null;
 
-  const styleFeature = (feature) => (
-    getGeoJsonAreaId(feature) === selectedAreaId ? selectedStyle : defaultStyle
-  );
+  const highlighted = new Set(highlightedAreaIds);
+  const styleFeature = (feature) => {
+    const id = getGeoJsonAreaId(feature);
+    if (id === selectedAreaId) return selectedStyle;
+    return highlighted.has(id) ? highlightedStyle : defaultStyle;
+  };
 
   const bindFeature = (feature, layer) => {
     const selectArea = () => onAreaSelect?.(normalizeGeoJsonArea(feature));
