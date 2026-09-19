@@ -118,59 +118,62 @@ function App() {
           onExplore={() => scrollToSection('community-explorer')}
           onViewTrends={() => scrollToSection('planning-trends')}
         />
-        <div className="workspace" id="community-explorer">
-          <div className="current-area" aria-live="polite">
-            <span>Currently exploring</span>
-            <strong>{selectedInsights.areaName}</strong>
-            {selectedGeoJsonArea && <small>Montgomery County, Maryland</small>}
-          </div>
-          <QueryPanel
-            activeFilter={activeFilter}
-            filters={filters}
-            searchTerm={searchTerm}
-            resultCount={visibleBusinesses.length}
-            totalCount={data.businesses.length}
-            onFilterChange={setActiveFilter}
-            onSearchChange={setSearchTerm}
-            onClear={clearFilters}
-            dataStatus={status}
-            dataIssue={issue}
-            usingFallback={usingFallback}
-          />
-          <div className="content-grid">
-            <MapPanel
-              areaName={selectedInsights.areaName}
-              businesses={queryState.result?.parsed?.intent === 'facilities' ? [] : visibleBusinesses}
-              facilities={queryFacilities}
-              totalBusinessCount={data.businesses.length}
-              businessLayerAvailable={data.businesses.length > 0}
-              evidenceSources={data.profile.sources}
-              communityGeoJson={data.communityGeoJson}
-              selectedAreaId={selectedGeoJsonArea?.areaId ?? null}
-              highlightedAreaIds={queryState.result?.map?.area_geoids ?? []}
-              onAreaSelect={selectArea}
-              onDefaultAreaSelect={() => selectArea(null)}
-              onExploreFenton={exploreFentonVillage}
-              exploreKey={fentonExploreKey}
-              hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0 || queryFacilities.length > 0}
-              isBusinessLoading={status === 'loading'}
-            />
-            <AskCommunity
-              question={question}
-              onQuestionChange={setQuestion}
-              onAsk={askQuestion}
-              status={queryState.status}
-              result={queryState.result}
-              error={queryState.error}
-              areaName={selectedGeoJsonArea?.areaName ?? 'Fenton Village, Silver Spring, Maryland'}
-              isAreaSelected={Boolean(selectedGeoJsonArea)}
-            />
-          </div>
+        <div className="workspace">
           <PlanningTrends
             insights={selectedInsights}
             trends={governmentTrends}
             trendGeography={governmentSummary?.study_area?.study_area?.name}
+            onExploreMap={() => scrollToSection('community-explorer')}
           />
+          <div className="explorer-stage" id="community-explorer">
+            <div className="current-area" aria-live="polite">
+              <span>Currently exploring</span>
+              <strong>{selectedInsights.areaName}</strong>
+              {selectedGeoJsonArea && <small>Montgomery County, Maryland</small>}
+            </div>
+            <QueryPanel
+              activeFilter={activeFilter}
+              filters={filters}
+              searchTerm={searchTerm}
+              resultCount={visibleBusinesses.length}
+              totalCount={data.businesses.length}
+              onFilterChange={setActiveFilter}
+              onSearchChange={setSearchTerm}
+              onClear={clearFilters}
+              dataStatus={status}
+              dataIssue={issue}
+              usingFallback={usingFallback}
+            />
+            <div className="content-grid">
+              <MapPanel
+                areaName={selectedInsights.areaName}
+                businesses={queryState.result?.parsed?.intent === 'facilities' ? [] : visibleBusinesses}
+                facilities={queryFacilities}
+                totalBusinessCount={data.businesses.length}
+                businessLayerAvailable={data.businesses.length > 0}
+                evidenceSources={data.profile.sources}
+                communityGeoJson={data.communityGeoJson}
+                selectedAreaId={selectedGeoJsonArea?.areaId ?? null}
+                highlightedAreaIds={queryState.result?.map?.area_geoids ?? []}
+                onAreaSelect={selectArea}
+                onDefaultAreaSelect={() => selectArea(null)}
+                onExploreFenton={exploreFentonVillage}
+                exploreKey={fentonExploreKey}
+                hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0 || queryFacilities.length > 0}
+                isBusinessLoading={status === 'loading'}
+              />
+              <AskCommunity
+                question={question}
+                onQuestionChange={setQuestion}
+                onAsk={askQuestion}
+                status={queryState.status}
+                result={queryState.result}
+                error={queryState.error}
+                areaName={selectedGeoJsonArea?.areaName ?? 'Fenton Village, Silver Spring, Maryland'}
+                isAreaSelected={Boolean(selectedGeoJsonArea)}
+              />
+            </div>
+          </div>
           <div className="business-explorer-callout">
             <p><strong>Exploring a business opportunity?</strong><span>Compare mapped competition with available community context.</span></p>
             <button className="secondary-button" type="button" onClick={openBusinessExplorer}>Open Business Opportunity Explorer</button>
