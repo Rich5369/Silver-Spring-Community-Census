@@ -6,6 +6,7 @@ import { findAreaFeatureContainingPoint, normalizeGeoJsonArea } from './geoJsonA
 import { countBusinessesByCategory } from './businessQuery';
 import {
   getBusinessCategories,
+  getBusinesses,
   getCommunityMap,
   getCommunityProfile,
   isApiConfigured,
@@ -49,47 +50,62 @@ export function useCommunityData(area) {
     const options = { signal: controller.signal };
     setState((current) => ({ ...current, status: 'loading', error: null, issue: null }));
 
-    // The map is required. The backend profile and the category vocabulary are
-    // enhancements, so settle all three: losing either degrades one part of the
-    // UI rather than dropping the whole app back to demo data.
+    // GET /api/v1/businesses is the one required request: it is the record of
+    // truth for the business layer. The tract polygons, the backend profile and
+    // the category vocabulary are enhancements, so settle all four - losing one
+    // degrades a single part of the UI rather than dropping the whole app back
+    // to demo data.
     Promise.allSettled([
+      getBusinesses(options),
       getCommunityMap(options),
       getCommunityProfile(area, options),
       getBusinessCategories(options),
     ])
-      .then(([mapResult, profileResult, categoriesResult]) => {
+      .then(([businessesResult, mapResult, profileResult, categoriesResult]) => {
         if (controller.signal.aborted) return;
-        if (mapResult.status === 'rejected') throw mapResult.reason;
 
-        const communityMap = mapResult.value;
+        const communityMap = mapResult.status === 'fulfilled' ? mapResult.value : null;
+        const businessesFailed = businessesResult.status === 'rejected';
+        // The map payload describes the same places, but its feature properties
+        // carry no dataset and no upstream id, so it is a fallback that keeps
+        // markers on screen - not an equal source. Preferring it silently is how
+        // provenance goes missing without anything looking broken.
+        const businesses = businessesFailed
+          ? communityMap?.businesses
+          : businessesResult.value;
+        if (!businesses) throw businessesResult.reason ?? mapResult.reason;
+
+        const areasFailed = mapResult.status === 'rejected';
         const profileFailed = profileResult.status === 'rejected' || !profileResult.value;
         const categoriesFailed = categoriesResult.status === 'rejected';
-        const degradedError = (profileResult.status === 'rejected' ? profileResult.reason : null)
-          ?? (categoriesFailed ? categoriesResult.reason : null);
+        const degradedError = [businessesResult, mapResult, profileResult, categoriesResult]
+          .find((result) => result.status === 'rejected')?.reason ?? null;
 
         // The backend serves the evidence-backed profile, so it is authoritative.
         // Deriving one from the tract under Fenton Village is only the fallback
-        // for when that endpoint is unavailable. Either way the business counts
-        // come from the records actually on the map, so the snapshot cannot
-        // contradict the map beside it.
+        // for when that endpoint is unavailable. Either way its business counts
+        // come from `businesses` above - the same array the map, the list and
+        // the filter chips read - so no panel can contradict another.
         const profile = profileFailed
-          ? resolveCommunityProfile(communityMap.businesses, communityMap.communityGeoJson)
+          ? resolveCommunityProfile(businesses, communityMap?.communityGeoJson ?? null)
           : withBusinessStats(
             { ...profileResult.value, sources: profileResult.value.sources ?? [] },
-            communityMap.businesses,
+            businesses,
           );
 
         setState({
-          status: profileFailed || categoriesFailed ? 'partial' : 'success',
+          status: businessesFailed || areasFailed || profileFailed || categoriesFailed
+            ? 'partial'
+            : 'success',
           data: {
-            businesses: communityMap.businesses,
+            businesses,
             profile,
             // Counting the records we did load keeps every filter chip usable.
             categories: categoriesFailed
-              ? countBusinessesByCategory(communityMap.businesses)
+              ? countBusinessesByCategory(businesses)
               : categoriesResult.value,
             transit: [],
-            communityGeoJson: communityMap.communityGeoJson,
+            communityGeoJson: communityMap?.communityGeoJson ?? null,
           },
           error: degradedError,
           issue: degradedError
