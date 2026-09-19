@@ -1,6 +1,7 @@
 import EvidenceDetails from './EvidenceDetails';
 import ComparisonPanel from './ComparisonPanel';
 import StatCard from './StatCard';
+import AboutData from './AboutData';
 import { fentonVillageInsights } from '../data/communityInsights';
 
 function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] }) {
@@ -50,6 +51,7 @@ function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] 
       </section>
 
       <ComparisonPanel areas={comparisonAreas} />
+      <AboutData />
     </aside>
   );
 }
