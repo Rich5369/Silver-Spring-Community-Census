@@ -31,7 +31,10 @@ class Settings(BaseSettings):
     # --- Service identity ---------------------------------------------------
     service_name: str = "community-intelligence-api"
     environment: str = "development"
-    debug: bool = True
+    # Do not consume the generic DEBUG variable: shells and hosting platforms
+    # commonly use values such as ``release`` there. SSCC_DEBUG is explicit
+    # to this service and remains a normal boolean setting.
+    debug: bool = Field(default=True, validation_alias="SSCC_DEBUG")
 
     # --- Database -----------------------------------------------------------
     database_url: str = "sqlite:///./data/community.db"
