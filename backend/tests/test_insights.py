@@ -30,7 +30,7 @@ POLYGON = (
 # be told apart from a naive average of per-tract shares.
 TRACT_A = {
     "total_population": 1000.0,
-    "young_adults_20_34": 300.0,
+    "young_adults_18_34": 300.0,
     "occupied_housing_units": 400.0,
     "renter_occupied_households": 300.0,
     "owner_occupied_households": 100.0,
@@ -46,7 +46,7 @@ TRACT_A = {
 }
 TRACT_B = {
     "total_population": 3000.0,
-    "young_adults_20_34": 300.0,
+    "young_adults_18_34": 300.0,
     "occupied_housing_units": 1600.0,
     "renter_occupied_households": 400.0,
     "owner_occupied_households": 1200.0,

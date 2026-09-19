@@ -61,9 +61,9 @@ _INTENT_METRICS: dict[Intent, tuple[str, ...]] = {
         "multilingual_household_share",
         "bachelors_or_higher_share",
     ),
-    Intent.POPULATION: ("total_population", "young_adults_20_34", "young_adult_share"),
+    Intent.POPULATION: ("total_population", "young_adults_18_34", "young_adult_share"),
     Intent.INCOME: (),
-    Intent.AGE: ("young_adults_20_34", "young_adult_share"),
+    Intent.AGE: ("young_adults_18_34", "young_adult_share"),
     Intent.HOUSING: (
         "occupied_housing_units",
         "renter_occupied_households",
@@ -75,6 +75,8 @@ _INTENT_METRICS: dict[Intent, tuple[str, ...]] = {
     # are reached through /api/v1/areas/{geoid}/metrics.
     Intent.COMMUTE: (
         "commuters_total",
+        "commute_public_transport",
+        "commute_transit_share",
         "commute_active_share",
         "worked_from_home_share",
     ),
