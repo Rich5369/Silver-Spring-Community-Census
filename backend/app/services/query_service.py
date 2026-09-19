@@ -22,6 +22,7 @@ from app.schemas.query import (
 from app.services import business_service
 from app.services.geojson_service import build_business_features
 from app.services.insights_service import build_insights
+from app.services.trends_service import build_government_trends
 
 UNSUPPORTED_ANSWER = (
     "This question is outside what the current dataset can answer. The data "
@@ -87,6 +88,10 @@ _INTENT_METRICS: dict[Intent, tuple[str, ...]] = {
         "commute_active_share",
         "renter_share",
     ),
+    Intent.DIVERSITY: ("multilingual_household_share", "bachelors_or_higher_share", "renter_share"),
+    Intent.DISPLACEMENT: ("renter_share", "total_population"),
+    Intent.GOVERNMENT_OVERVIEW: ("total_population", "renter_share", "young_adult_share", "multilingual_household_share"),
+    Intent.TRENDS: (),
 }
 
 _INTENT_RANGES: dict[Intent, tuple[str, ...]] = {
@@ -185,6 +190,18 @@ def _opportunity_answer(insights: InsightsResponse) -> str:
     leaders = ", ".join(
         f"{item.category} ({item.count})" for item in categories[:3]
     )
+
+
+def _civic_answer(intent: Intent, insights: InsightsResponse, trend_years: list[int]) -> str:
+    if intent is Intent.TRENDS:
+        if len(trend_years) < 2:
+            return "Historical trend data is not available yet; ingest at least two ACS vintages to compare years."
+        return f"The study area has comparable ACS vintages for {', '.join(map(str, trend_years))}. The response includes the observed population and renter-share series for those years."
+    if intent is Intent.DISPLACEMENT:
+        return "The data can show renter share, population, income ranges, and observed ACS change, but it cannot establish displacement or its causes. Review the indicators and evidence as signals requiring housing and permit data."
+    if intent is Intent.DIVERSITY:
+        return "The available community indicators describe language, education, age, and housing composition across the study-area tracts. They describe the population; they are not a complete measure of cultural identity or representation."
+    return "This civic summary combines population, housing, community composition, ACS change, and mapped-area context. Each reported value is returned with its source evidence."
     return (
         "The data cannot identify which business will be successful or recommend "
         "an opening. It can show current market context: the most represented "
@@ -219,13 +236,23 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
     categories = []
     businesses = []
     business_features = None
+    trends = []
+    if intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.GOVERNMENT_OVERVIEW):
+        trend_response = build_government_trends(session)
+        trends = trend_response.series
+        limitations.extend(trend_response.limitations)
 
     if intent in (Intent.NEARBY_BUSINESSES, Intent.BUSINESS_CATEGORIES, Intent.BUSINESS_OPPORTUNITY):
         limitations.append(BUSINESS_LIMITATION)
-    if intent in (Intent.INCOME, Intent.AGE, Intent.COMMUNITY_OVERVIEW):
+    if intent in (Intent.INCOME, Intent.AGE, Intent.COMMUNITY_OVERVIEW, Intent.DIVERSITY):
         limitations.append(MEDIAN_LIMITATION)
 
-    if intent is Intent.BUSINESS_OPPORTUNITY:
+    if intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW):
+        metrics = _select(insights.community_snapshot, _INTENT_METRICS[intent])
+        answer = _civic_answer(intent, insights, sorted({point.year for series in trends for point in series.points}))
+        for metric in metrics:
+            evidence.extend(metric.evidence)
+    elif intent is Intent.BUSINESS_OPPORTUNITY:
         categories = insights.business_landscape.categories
         answer = _opportunity_answer(insights)
         metrics = _select(insights.community_snapshot, _INTENT_METRICS[intent])
@@ -270,6 +297,7 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
         ranges=ranges,
         categories=categories,
         businesses=businesses,
+        trends=trends,
         map=QueryMap(
             area_geoids=insights.study_area.tract_geoids,
             businesses=business_features,

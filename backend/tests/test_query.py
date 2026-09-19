@@ -55,6 +55,15 @@ def _ask(client: TestClient, question: str) -> dict:
         ("Show me the business mix", Intent.BUSINESS_CATEGORIES),
         ("How many restaurants are nearby?", Intent.NEARBY_BUSINESSES),
         ("Where are the cafes?", Intent.NEARBY_BUSINESSES),
+        ("What is the community demographic profile?", Intent.AGE),
+        ("What local business has a market gap?", Intent.BUSINESS_OPPORTUNITY),
+        ("Which new business could serve customers here?", Intent.BUSINESS_OPPORTUNITY),
+        ("What is the local commercial landscape?", Intent.BUSINESS_CATEGORIES),
+        ("How is housing pressure showing up?", Intent.DISPLACEMENT),
+        ("How has the community changed over time?", Intent.TRENDS),
+        ("What are the diversity indicators?", Intent.DIVERSITY),
+        ("Are there signs of displacement?", Intent.DISPLACEMENT),
+        ("What should city planners know?", Intent.GOVERNMENT_OVERVIEW),
     ],
 )
 def test_rule_based_intents(question: str, expected: Intent) -> None:
