@@ -119,7 +119,7 @@ function GovernmentPlanningPanel({ summary, trends, serviceRequests }) {
               })}
             </div>
           </div>
-          <p className="government-trend-note">Official Montgomery County MC311 volume. ZIP 20910 is broader than Fenton Village and does not prove unmet need.</p>
+          <p className="government-trend-note">Official Montgomery County MC311 volume ({serviceRequests.source_status === 'live' ? 'live' : 'dated snapshot'}). ZIP 20910 is broader than Fenton Village and does not prove unmet need.</p>
         </section>
       )}
       <p className="government-trend-note">

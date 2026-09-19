@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import json
+from pathlib import Path
 
 import httpx
 
@@ -10,6 +12,7 @@ from app.schemas.government import ServiceRequestResponse, ServiceRequestTrend
 
 MC311_URL = "https://data.montgomerycountymd.gov/resource/xtyh-brr2.json"
 MC311_SOURCE = "https://data.montgomerycountymd.gov/d/xtyh-brr2"
+SNAPSHOT_PATH = Path(__file__).resolve().parents[2] / "data" / "mc311_20910.json"
 
 
 @lru_cache(maxsize=1)
@@ -31,8 +34,14 @@ def fetch_mc311_trend() -> ServiceRequestResponse:
                              headers={"User-Agent": "SilverSpringCommunityCensus/0.1"})
         response.raise_for_status()
         rows = response.json()
-    except (httpx.HTTPError, ValueError) as exc:
-        raise RuntimeError("Montgomery County MC311 data is temporarily unavailable") from exc
+    except (httpx.HTTPError, ValueError):
+        # Render/free hosting and the county portal can have transient network
+        # failures. Keep the demo honest and usable with a dated, committed
+        # snapshot instead of returning a misleading 500 or invented values.
+        rows = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
+        source_status = "dated_snapshot"
+    else:
+        source_status = "live"
     if not isinstance(rows, list):
         raise RuntimeError("Montgomery County MC311 returned an unexpected response")
     series = [
@@ -55,5 +64,7 @@ def fetch_mc311_trend() -> ServiceRequestResponse:
             "ZIP 20910 is a screening geography and is broader than Fenton Village.",
             "Request volume is not a direct measure of unmet need, service quality, or causation.",
             "The dataset is updated by the county; the latest year may be incomplete.",
+            *( ["Live county endpoint was unavailable; values are the committed 2026-09-19 snapshot."] if source_status == "dated_snapshot" else [] ),
         ],
+        source_status=source_status,
     )

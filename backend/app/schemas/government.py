@@ -33,6 +33,7 @@ class ServiceRequestResponse(BaseModel):
     series: list[ServiceRequestTrend] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
+    source_status: str = "live"
 
 
 class GovernmentSummaryResponse(BaseModel):
