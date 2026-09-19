@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
+import { CircleMarker, MapContainer, Pane, Popup, TileLayer, useMap } from 'react-leaflet';
 import MapDataLayers from './MapDataLayers';
 import MapLayersControl from './MapLayersControl';
 import { sanitizeGeoJsonFeatureCollection } from '../services/geoJsonAdapter';
@@ -172,6 +172,8 @@ function CommunityMap({
         scrollWheelZoom
         className="leaflet-map"
       >
+        <Pane name="communityBoundariesPane" style={{ zIndex: 410 }} />
+        <Pane name="businessMarkersPane" style={{ zIndex: 420 }} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

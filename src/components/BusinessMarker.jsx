@@ -10,6 +10,7 @@ function BusinessMarker({ business, sources = [], focusRequest, isSelected = fal
   const focusPopup = () => requestAnimationFrame(() => popupContentRef.current?.focus({ preventScroll: true }));
   useEffect(() => {
     if (!isSelected) return undefined;
+    markerRef.current?.bringToFront();
     // Leaflet reattaches popup content while React updates the selected marker.
     // Focus after that content update so it is not lost when the node moves.
     const timer = setTimeout(() => popupContentRef.current?.focus({ preventScroll: true }), 0);
@@ -70,6 +71,8 @@ function BusinessMarker({ business, sources = [], focusRequest, isSelected = fal
       ref={markerRef}
       center={[business.latitude, business.longitude]}
       radius={isSelected ? 11 : 7}
+      pane="businessMarkersPane"
+      bubblingMouseEvents={false}
       pathOptions={{
         color: isSelected ? '#173f31' : '#ffffff',
         fillColor: '#286b4c',
@@ -77,6 +80,9 @@ function BusinessMarker({ business, sources = [], focusRequest, isSelected = fal
         weight: isSelected ? 4 : 2,
       }}
       eventHandlers={{
+        click: (event) => {
+          event.originalEvent?.stopPropagation();
+        },
         popupopen: () => { onSelect?.(business.id); markerRef.current?.bringToFront(); },
         // Hiding the map for the List view closes popups; that must not drop the selection.
         popupclose: () => { if (isVisible && isSelected) onSelect?.(null); },

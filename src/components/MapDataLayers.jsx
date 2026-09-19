@@ -18,16 +18,6 @@ function MapDataLayers({
 }) {
   return (
     <>
-      {visibility.businesses && (
-        <BusinessLayer
-          businesses={businesses}
-          evidenceSources={evidenceSources}
-          businessFocus={businessFocus}
-          selectedBusinessId={selectedBusinessId}
-          onBusinessSelect={onBusinessSelect}
-          isVisible={isVisible}
-        />
-      )}
       {visibility.community && communityGeoJson && (
         <CensusAreaLayer
           data={communityGeoJson}
@@ -38,6 +28,16 @@ function MapDataLayers({
       )}
       {visibility.transit && transitGeoJson && (
         <GeoJSON data={transitGeoJson} />
+      )}
+      {visibility.businesses && (
+        <BusinessLayer
+          businesses={businesses}
+          evidenceSources={evidenceSources}
+          businessFocus={businessFocus}
+          selectedBusinessId={selectedBusinessId}
+          onBusinessSelect={onBusinessSelect}
+          isVisible={isVisible}
+        />
       )}
     </>
   );

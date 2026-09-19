@@ -61,7 +61,14 @@ function CensusAreaLayer({ data, selectedAreaId = null, highlightedAreaIds = [],
     });
   };
 
-  return <GeoJSON data={safeData} style={styleFeature} onEachFeature={bindFeature} />;
+  return (
+    <GeoJSON
+      data={safeData}
+      pane="communityBoundariesPane"
+      style={styleFeature}
+      onEachFeature={bindFeature}
+    />
+  );
 }
 
 export default CensusAreaLayer;
