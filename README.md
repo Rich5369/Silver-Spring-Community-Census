@@ -36,7 +36,8 @@ Return this exact envelope. `businesses` may be an empty array. Coordinates must
       "latitude": 38.9921,
       "longitude": -77.0242,
       "address": "123 Example Street, Silver Spring, MD",
-      "source": "Organization or dataset name"
+      "source": "Organization or dataset name",
+      "sourceIds": ["business-directory-2026"]
     }
   ]
 }
@@ -63,6 +64,14 @@ Return this exact envelope. Unknown numeric statistics should be `null`, not for
       "businessCount": 14,
       "restaurantCount": 2,
       "retailCount": 2
+    },
+    "statisticSources": {
+      "population": ["acs-dp05-2024"],
+      "income": ["acs-s1901-2024"],
+      "language": ["acs-s1601-2024"],
+      "businesses": ["business-directory-2026"],
+      "restaurants": ["business-directory-2026"],
+      "retail": ["business-directory-2026"]
     }
   }
 }
@@ -74,6 +83,7 @@ Sources are requested separately and use this envelope:
 {
   "sources": [
     {
+      "id": "acs-s1901-2024",
       "organization": "",
       "dataset": "",
       "year": "",
@@ -84,3 +94,28 @@ Sources are requested separately and use this envelope:
   ]
 }
 ```
+
+### Community-area GeoJSON
+
+No boundary dataset is bundled with the frontend. When real geographic data is available, pass a standard GeoJSON `FeatureCollection` to the map's `communityGeoJson` input. Feature properties may contain available values and source metadata; `null` values display as `Data unavailable` rather than zero or an estimate.
+
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "stable-area-id",
+      "properties": {
+        "areaName": "",
+        "population": null,
+        "medianIncome": null,
+        "source": null
+      },
+      "geometry": null
+    }
+  ]
+}
+```
+
+`source` may be `null`, one source object, or an array of source objects using the source fields documented above. Real features must include valid GeoJSON geometry before the layer is enabled.

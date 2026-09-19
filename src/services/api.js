@@ -28,6 +28,13 @@ async function requestJson(path, options = {}) {
   return response.json();
 }
 
+function malformedResponse(resource) {
+  const error = new Error(`Malformed ${resource} response`);
+  error.name = 'MalformedResponseError';
+  error.code = 'MALFORMED_RESPONSE';
+  return error;
+}
+
 const finiteNumber = (value) => {
   if (value === null || value === undefined || value === '') return null;
   const number = Number(value);
@@ -36,9 +43,10 @@ const finiteNumber = (value) => {
 
 export function normalizeBusinesses(payload) {
   const records = Array.isArray(payload) ? payload : payload?.businesses;
-  if (!Array.isArray(records)) return [];
+  if (payload == null) return [];
+  if (!Array.isArray(records)) throw malformedResponse('businesses');
 
-  return records.flatMap((business, index) => {
+  const normalized = records.flatMap((business, index) => {
     const latitude = finiteNumber(business?.latitude);
     const longitude = finiteNumber(business?.longitude);
     if (!business?.name || latitude === null || longitude === null) return [];
@@ -51,17 +59,23 @@ export function normalizeBusinesses(payload) {
       longitude,
       address: String(business.address || 'Address not provided'),
       source: String(business.source || 'Source not provided'),
+      sourceIds: Array.isArray(business.sourceIds) ? business.sourceIds.map(String) : [],
     }];
   });
+
+  if (normalized.length !== records.length) throw malformedResponse('businesses');
+  return normalized;
 }
 
 const formatInteger = (value) => (
-  value === null ? '—' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)
+  value === null
+    ? 'Data unavailable'
+    : new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)
 );
 
 const formatCurrency = (value) => (
   value === null
-    ? '—'
+    ? 'Data unavailable'
     : new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -71,7 +85,7 @@ const formatCurrency = (value) => (
 
 export function normalizeCommunityProfile(payload, requestedArea = 'Selected community') {
   const profile = payload?.profile ?? payload;
-  if (!profile || typeof profile !== 'object') {
+  if (payload == null || payload?.profile === null) {
     return {
       areaName: requestedArea,
       dataStatus: 'No profile data available',
@@ -80,10 +94,27 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       sources: [],
     };
   }
+  if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
+    throw malformedResponse('community profile');
+  }
+  const knownFields = ['areaName', 'summary', 'dataStatus', 'statistics', 'statisticSources'];
+  if (!knownFields.some((field) => Object.hasOwn(profile, field))) {
+    throw malformedResponse('community profile');
+  }
+  if (profile.statistics != null && typeof profile.statistics !== 'object') {
+    throw malformedResponse('community profile');
+  }
 
   const statistics = profile.statistics ?? {};
   const language = statistics.language ?? {};
-  const stat = (id, label, value) => ({ id, label, value, note: 'Backend response' });
+  const statisticSources = profile.statisticSources ?? {};
+  const stat = (id, label, value) => ({
+    id,
+    label,
+    value,
+    note: 'Backend response',
+    sourceIds: Array.isArray(statisticSources[id]) ? statisticSources[id].map(String) : [],
+  });
   const languageValue = finiteNumber(language.value);
 
   return {
@@ -97,7 +128,7 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
         'language',
         String(language.label || 'Language statistic'),
         languageValue === null
-          ? '—'
+          ? 'Data unavailable'
           : `${formatInteger(languageValue)}${language.unit === 'percent' ? '%' : ''}`,
       ),
       stat('businesses', 'Businesses shown', formatInteger(finiteNumber(statistics.businessCount))),
@@ -110,9 +141,14 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
 
 export function normalizeSources(payload) {
   const records = Array.isArray(payload) ? payload : payload?.sources;
-  if (!Array.isArray(records)) return [];
+  if (payload == null) return [];
+  if (!Array.isArray(records)) throw malformedResponse('sources');
+  if (records.some((source) => !source || typeof source !== 'object' || Array.isArray(source))) {
+    throw malformedResponse('sources');
+  }
 
   return records.map((source) => ({
+    id: source?.id == null ? '' : String(source.id),
     organization: String(source?.organization || ''),
     dataset: String(source?.dataset || ''),
     year: String(source?.year || ''),
@@ -141,5 +177,7 @@ export async function getTransit(options = {}) {
   if (!isApiConfigured) return [];
   const payload = await requestJson(ENDPOINTS.transit, options);
   const records = Array.isArray(payload) ? payload : payload?.transit;
-  return Array.isArray(records) ? records : [];
+  if (payload == null) return [];
+  if (!Array.isArray(records)) throw malformedResponse('transit');
+  return records;
 }
