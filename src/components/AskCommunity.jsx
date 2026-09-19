@@ -5,6 +5,7 @@ const STARTER_QUESTIONS = [
   'What is the population of Fenton Village?',
   'How do people commute to work?',
   'How many restaurants are nearby?',
+  'Which business could be successful opening here?',
 ];
 
 function AskCommunity({ question, onQuestionChange, onAsk, status, result, error }) {

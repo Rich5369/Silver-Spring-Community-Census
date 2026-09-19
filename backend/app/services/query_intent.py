@@ -81,6 +81,15 @@ _CATEGORY_SYNONYMS: tuple[tuple[str, str], ...] = (
 # Ordered most specific to most general; the first intent with a match wins.
 _INTENT_KEYWORDS: tuple[tuple[Intent, tuple[str, ...]], ...] = (
     (
+        Intent.BUSINESS_OPPORTUNITY,
+        (
+            "successful opening", "successfully opening", "business opportunity",
+            "business to open", "what should i open", "what could i open",
+            "which business should", "which business could", "open a business",
+            "opening a business", "open here", "opening here",
+        ),
+    ),
+    (
         Intent.BUSINESS_CATEGORIES,
         (
             "what kind of business", "what kinds of business", "what types of business",
