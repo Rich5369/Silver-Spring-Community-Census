@@ -25,6 +25,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 
 .app-shell { min-height: 100vh; }
 
+.home-intro { display: grid; grid-template-columns: minmax(0, .9fr) minmax(420px, 1.1fr); gap: clamp(28px, 5vw, 72px); padding: clamp(38px, 6vw, 72px) clamp(24px, 6vw, 88px) clamp(34px, 5vw, 60px); border-bottom: 1px solid #d2ddd5; background: linear-gradient(135deg, #f8fbf8 0%, #edf4ef 100%); }
+.hero-copy { align-self: center; max-width: 690px; }
+.hero-copy h2 { max-width: 650px; margin: 10px 0 0; color: #173f31; font-size: clamp(34px, 5vw, 58px); line-height: 1.02; letter-spacing: -.035em; }
+.hero-lede { max-width: 650px; margin: 18px 0 0; color: #455f52; font-size: clamp(16px, 2vw, 20px); line-height: 1.5; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.hero-actions button { min-height: 46px; padding: 10px 16px; }
+.hero-audience { margin: 16px 0 0; color: #66776d; font-size: 12px; line-height: 1.45; }
+.home-purpose { align-self: center; padding: 20px; border: 1px solid #cfddd2; border-radius: 12px; background: rgb(255 255 255 / 76%); box-shadow: 0 8px 28px rgb(31 49 39 / 5%); }
+.home-purpose > p { max-width: 760px; margin: 0; color: #465d51; font-size: 13px; line-height: 1.55; }
+.capability-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.capability-grid article { min-width: 0; padding: 13px; border-left: 3px solid #78a98b; background: #f6f9f7; }
+.capability-grid h3 { margin: 0; color: #244535; font-size: 13px; }
+.capability-grid p { margin: 5px 0 0; color: #607168; font-size: 11px; line-height: 1.45; }
+
 .site-header {
   min-height: 82px;
   display: flex;
@@ -55,7 +69,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .location-label { margin-left: auto; display: flex; align-items: center; gap: 8px; color: #d2e0d8; font-size: 13px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #91d0a8; box-shadow: 0 0 0 4px rgb(145 208 168 / 12%); }
 
-.workspace { padding: 22px clamp(24px, 4vw, 64px) 38px; }
+.workspace { padding: 22px clamp(24px, 4vw, 64px) 38px; scroll-margin-top: 12px; }
 .main-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr); align-items: start; gap: 18px; }
 .right-rail { display: grid; gap: 14px; min-width: 0; max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 2px; }
 .right-rail .ask-community, .right-rail .query-panel, .right-rail .community-context { margin-bottom: 0; }
@@ -184,6 +198,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .selected-business-actions { display: flex; gap: 8px; }
 .selected-flag { padding: 2px 7px; border: 1px solid #1e533b; border-radius: 3px; color: #fff; background: #246247; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
 .business-list-view { padding: 16px 18px; max-height: 680px; overflow-y: auto; }
+.business-loading { margin: 0; padding: 24px 18px; color: #607168; font-size: 12px; }
 .list-intro { margin: 0 0 12px; color: #5f7067; font-size: 12px; line-height: 1.5; }
 .list-empty { margin: 0; color: #24332b; font-size: 13px; line-height: 1.5; }
 .business-results { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
@@ -373,6 +388,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 
 @media (max-width: 900px) {
+  .home-intro { grid-template-columns: 1fr; gap: 24px; }
   .business-map-view { height: 430px; }
   .business-map-view.expanded { height: clamp(540px, 72vh, 760px); }
   .content-grid { grid-template-columns: minmax(0, 1fr); }
@@ -384,6 +400,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 
 @media (max-width: 600px) {
   .site-header, .workspace { padding-right: 18px; padding-left: 18px; }
+  .home-intro { padding: 34px 18px 30px; }
+  .hero-copy h2 { font-size: clamp(32px, 11vw, 44px); }
+  .hero-actions { align-items: stretch; flex-direction: column; }
+  .hero-actions button { width: 100%; min-height: 48px; }
+  .home-purpose { padding: 15px; }
+  .capability-grid { grid-template-columns: 1fr; }
   .location-label { display: none; }
   .business-map-view { height: 400px; }
   .business-map-view.expanded { height: clamp(480px, 68vh, 620px); }
