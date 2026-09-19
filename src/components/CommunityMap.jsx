@@ -22,7 +22,14 @@ function MapController({ center, zoom, resetKey }) {
   return null;
 }
 
-function CommunityMap({ center, zoom, locations = [], businesses = [], resetKey = 0 }) {
+function CommunityMap({
+  center,
+  zoom,
+  locations = [],
+  businesses = [],
+  showEmptyResults = false,
+  resetKey = 0,
+}) {
   return (
     <div className="map-canvas">
       <MapContainer
@@ -55,6 +62,12 @@ function CommunityMap({ center, zoom, locations = [], businesses = [], resetKey 
       {businesses.length > 0 && (
         <div className="mock-layer-notice" role="note">
           Demo layer: {businesses.length} mock businesses — not verified data
+        </div>
+      )}
+      {showEmptyResults && (
+        <div className="map-empty-results" role="status">
+          <strong>No businesses found</strong>
+          <span>Try another category or clear the search.</span>
         </div>
       )}
     </div>

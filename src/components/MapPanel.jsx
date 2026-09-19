@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import CommunityMap from './CommunityMap';
 import { fentonVillage, silverSpringMapView } from '../data/mapData';
-import { mockBusinesses } from '../data/mockBusinesses';
 
-function MapPanel() {
+function MapPanel({ businesses = [], hasActiveQuery = false }) {
   const [resetKey, setResetKey] = useState(0);
 
   return (
@@ -26,7 +25,8 @@ function MapPanel() {
         center={silverSpringMapView.center}
         zoom={silverSpringMapView.zoom}
         locations={[fentonVillage]}
-        businesses={mockBusinesses}
+        businesses={businesses}
+        showEmptyResults={hasActiveQuery && businesses.length === 0}
         resetKey={resetKey}
       />
     </section>
