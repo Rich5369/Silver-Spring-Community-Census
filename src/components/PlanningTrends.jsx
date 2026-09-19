@@ -223,7 +223,7 @@ function ServiceRequestPanel({ data }) {
   );
 }
 
-export default function PlanningTrends({ insights, trends, serviceRequests, trendGeography = '' }) {
+export default function PlanningTrends({ insights, trends, serviceRequests, trendGeography = '', onExploreMap }) {
   const [open, setOpen] = useState(null);
   const baseId = useId();
   const geography = insights?.areaName || 'Selected community';
@@ -252,7 +252,7 @@ export default function PlanningTrends({ insights, trends, serviceRequests, tren
         <div><p className="eyebrow">For city planners</p><h2 id={`${baseId}-title`}>Planning Trends</h2></div>
         <p><strong>{geography}</strong><span>Montgomery County, Maryland</span></p>
       </div>
-      <p className="planning-trends-intro">Recent verified releases and transparent planning projections, when enough comparable history exists.</p>
+      <p className="planning-trends-intro">Understand how key community indicators are changing over time through verified releases and transparent planning projections.</p>
       <div className="trend-accordions">
           {metrics.map((metric) => {
           const expanded = open === metric.id;
@@ -281,6 +281,9 @@ export default function PlanningTrends({ insights, trends, serviceRequests, tren
           Metrics are shown only for matching geographic definitions.
         </p>
       </details>
+      <div className="trend-map-action">
+        <button className="secondary-button" type="button" onClick={onExploreMap}>Explore this area on the map</button>
+      </div>
     </section>
   );
 }
