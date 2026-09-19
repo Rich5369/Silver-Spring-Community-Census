@@ -47,7 +47,7 @@ registerHooks({
   },
 });
 
-const { normalizeCommunityMap, normalizeBusinessCategories } =
+const { getBusinesses, normalizeCommunityMap, normalizeBusinessCategories } =
   await import(new URL('services/api.js', SRC).href);
 const { resolveCommunityProfile } = await import(new URL('services/useCommunityData.js', SRC).href);
 const {
@@ -66,6 +66,28 @@ const check = (name, got, want) => {
   if (!ok) console.log(`        got  ${JSON.stringify(got)}\n        want ${JSON.stringify(want)}`);
 };
 const statValue = (profile, id) => profile.stats.find((stat) => stat.id === id)?.value;
+
+console.log('\n# Offline: API client executes a real request path');
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async () => new Response(JSON.stringify({
+  businesses: [{
+    id: 1,
+    name: 'Client contract check',
+    category: 'Community Service',
+    latitude: 38.995,
+    longitude: -77.025,
+    address: 'Silver Spring, MD',
+    source: 'Verification fixture',
+  }],
+}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+try {
+  const clientBusinesses = await getBusinesses();
+  check('GET wrapper reaches fetch and normalizes its response', clientBusinesses.length, 1);
+} catch (error) {
+  check('GET wrapper reaches fetch and normalizes its response', error?.message, 'no error');
+} finally {
+  globalThis.fetch = originalFetch;
+}
 
 console.log('\n# Offline: demo fallback (API unreachable or not configured)');
 const fallback = resolveCommunityProfile(mockBusinesses, null);
