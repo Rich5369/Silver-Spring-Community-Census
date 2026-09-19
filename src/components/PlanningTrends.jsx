@@ -214,14 +214,14 @@ export default function PlanningTrends({ insights, trends, trendGeography = '' }
       id: 'population',
       label: 'Population',
       series: findSeries(['total_population', 'population']),
-      unavailable: 'Historical population trend unavailable for this geography with verifiable source metadata',
+      unavailable: 'Historical trend unavailable for this metric.',
     },
     {
       id: 'income',
       label: 'Median household income',
       format: 'currency',
       series: findSeries(['median_household_income']),
-      unavailable: 'Historical median household income trend unavailable for this geography with verifiable source metadata',
+      unavailable: 'Historical trend unavailable for this metric.',
     },
   ];
   return (

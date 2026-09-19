@@ -75,7 +75,12 @@ function MapPanel({
           <button
             className="secondary-button"
             type="button"
-            onClick={() => { setView('map'); clearSelection(); setResetKey((key) => key + 1); }}
+            onClick={() => {
+              setView('map');
+              clearSelection();
+              onDefaultAreaSelect?.();
+              setResetKey((key) => key + 1);
+            }}
           >
             Reset view
           </button>
