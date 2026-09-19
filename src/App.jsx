@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import AskCommunity from './components/AskCommunity';
 import HomeIntro from './components/HomeIntro';
+import LiveEvidenceBar from './components/LiveEvidenceBar';
 import { answerAreaQuestion } from './services/areaQuestion';
 import QueryPanel from './components/QueryPanel';
 import { buildBusinessFilters, queryBusinesses } from './services/businessQuery';
@@ -166,6 +167,7 @@ function App() {
           onExplore={() => scrollToSection('community-explorer')}
           onViewTrends={() => scrollToSection('planning-trends')}
         />
+        <LiveEvidenceBar data={data} status={status} usingFallback={usingFallback} />
         <div className="workspace">
           {/* The fallback carries the section's id and shape so "View community
               trends" scrolls correctly even before the chunk has arrived. */}
@@ -177,6 +179,7 @@ function App() {
             <PlanningTrends
               insights={selectedInsights}
               trends={governmentTrends}
+              serviceRequests={serviceRequests}
               trendGeography={governmentSummary?.study_area?.study_area?.name}
               onExploreMap={() => scrollToSection('community-explorer')}
             />

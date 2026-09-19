@@ -272,7 +272,29 @@ function MetricPanel({ metric, geography }) {
   );
 }
 
-export default function PlanningTrends({ insights, trends, trendGeography = '', onExploreMap }) {
+function ServiceRequestPanel({ data }) {
+  const points = data?.series ?? [];
+  const max = Math.max(...points.map((point) => point.requests), 1);
+  const first = points[0]?.requests;
+  const last = points.at(-1)?.requests;
+  const change = first ? ((last - first) / first) * 100 : null;
+  return (
+    <div className="trend-content">
+      <div className="trend-summary">
+        <div><span>Latest annual volume</span><strong>{last?.toLocaleString() ?? 'Unavailable'}</strong><small>{points.at(-1)?.year ?? ''}</small></div>
+        <div><span>Change since first release</span><strong>{change == null ? 'Unavailable' : (change >= 0 ? '+' : '') + change.toFixed(1) + '%'}</strong><small>directional screening signal</small></div>
+        <div><span>Source status</span><strong>{data?.source_status === 'live' ? 'Live' : 'Snapshot'}</strong><small>Montgomery County MC311</small></div>
+      </div>
+      <div className="service-request-bars" role="img" aria-label="Annual Montgomery County service request counts for ZIP 20910">
+        {points.map((point) => <div className="service-request-bar" key={point.year}><span style={{ height: Math.max(4, (point.requests / max) * 100) + '%' }} title={point.year + ': ' + point.requests.toLocaleString() + ' requests'} /><small>{point.year}</small></div>)}
+      </div>
+      <p className="trend-note">Official MC311 requests for ZIP 20910, a broader screening geography than Fenton Village. Volume does not prove unmet need, service quality, or causation.</p>
+      <details className="trend-evidence-details"><summary><span>View official source</span><small>Montgomery County</small></summary><div className="trend-evidence-content"><p>{(data?.limitations ?? []).join(' ')}</p>{data?.evidence?.map((item) => <a key={item.source_url} href={item.source_url} target="_blank" rel="noreferrer">{item.organization}: {item.dataset}</a>)}</div></details>
+    </div>
+  );
+}
+
+export default function PlanningTrends({ insights, trends, serviceRequests, trendGeography = '', onExploreMap }) {
   const [open, setOpen] = useState(null);
   const baseId = useId();
   const geography = insights?.areaName || 'Selected community';
@@ -331,7 +353,7 @@ export default function PlanningTrends({ insights, trends, trendGeography = '', 
       </div>
       <p className="planning-trends-intro">Explore how key community indicators are changing over time using verified public data and transparent trend-based projections.</p>
       <div className="trend-accordions">
-        {metrics.map((metric) => {
+          {metrics.map((metric) => {
           const expanded = open === metric.id;
           const panelId = `${baseId}-${metric.id}`;
           return (
@@ -347,7 +369,13 @@ export default function PlanningTrends({ insights, trends, trendGeography = '', 
               </div>
             </div>
           );
-        })}
+          })}
+        {serviceRequests?.series?.length > 1 && (
+          <div className="trend-accordion">
+            <button type="button" aria-expanded={open === 'service-requests'} onClick={() => setOpen(open === 'service-requests' ? null : 'service-requests')}><span aria-hidden="true">{open === 'service-requests' ? '▾' : '▸'}</span>Official service-request volume</button>
+            <div hidden={open !== 'service-requests'}><ServiceRequestPanel data={serviceRequests} /></div>
+          </div>
+        )}
       </div>
       <details className="trend-disclosure about-trend">
         <summary>About this trend</summary>
