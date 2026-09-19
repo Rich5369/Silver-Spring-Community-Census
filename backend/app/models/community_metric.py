@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Float, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -55,8 +63,10 @@ class CommunityMetric(Base):
 
     #: The provider's own variable for this row, e.g. the ACS code
     #: "B19013_001E". Row-specific, so it stays here rather than on
-    #: DataSource.
-    source_variable: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    #: DataSource. Text rather than a bounded String because a derived metric
+    #: records its full formula here - a share over ten age cells runs past
+    #: 150 characters - so the arithmetic stays reproducible from the row.
+    source_variable: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     geography: Mapped[Geography] = relationship(lazy="joined")
     data_source: Mapped[DataSource] = relationship(lazy="joined")
