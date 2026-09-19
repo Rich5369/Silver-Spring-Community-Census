@@ -13,8 +13,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.routes import geographies, health
+from app.api.routes import businesses, geographies, health
 
 api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(geographies.router)
+api_router.include_router(businesses.router)

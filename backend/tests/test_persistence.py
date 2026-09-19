@@ -196,7 +196,7 @@ def test_reingesting_a_business_updates_in_place(db_session: Session) -> None:
     source, _, _, business = seed(db_session)
     repo = BusinessRepository(db_session)
 
-    updated = repo.upsert(
+    updated, created = repo.upsert(
         data_source_id=source.id,
         external_id="test/1",
         name="TEST Sample Cafe (renamed)",
@@ -208,6 +208,7 @@ def test_reingesting_a_business_updates_in_place(db_session: Session) -> None:
 
     assert updated.id == business.id
     assert updated.name == "TEST Sample Cafe (renamed)"
+    assert created is False, "an existing OSM id must update, not insert"
     assert repo.count() == 1
 
 

@@ -18,10 +18,11 @@ demo cannot be broken by an upstream outage.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 import httpx
+
+from app.integrations.geo import BoundingBox
 
 TIGERWEB_ROOT = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
 
@@ -37,19 +38,6 @@ TIGERWEB_LICENSE = "Public domain (US Government work)"
 
 MARYLAND_STATE_FIPS = "24"
 MONTGOMERY_COUNTY_FIPS = "031"
-
-
-@dataclass(frozen=True)
-class BoundingBox:
-    """A WGS84 lon/lat envelope."""
-
-    min_lon: float
-    min_lat: float
-    max_lon: float
-    max_lat: float
-
-    def as_esri_envelope(self) -> str:
-        return f"{self.min_lon},{self.min_lat},{self.max_lon},{self.max_lat}"
 
 
 #: Study area for the MVP: downtown Silver Spring, covering the Fenton Village

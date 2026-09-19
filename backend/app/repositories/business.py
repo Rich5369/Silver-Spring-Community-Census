@@ -60,8 +60,14 @@ class BusinessRepository(BaseRepository[Business]):
         longitude: float,
         address: str | None = None,
         geography_id: int | None = None,
-    ) -> Business:
-        """Create the place, or update it in place if already ingested."""
+        source_tags: str | None = None,
+        source_tag: str | None = None,
+    ) -> tuple[Business, bool]:
+        """Create the place, or update it in place if already ingested.
+
+        Returns the row and whether it was newly created, so ingestion can
+        report inserts and updates separately.
+        """
         existing = self.get_by_external_id(
             data_source_id=data_source_id, external_id=external_id
         )
@@ -72,10 +78,12 @@ class BusinessRepository(BaseRepository[Business]):
             existing.longitude = longitude
             existing.address = address
             existing.geography_id = geography_id
+            existing.source_tags = source_tags
+            existing.source_tag = source_tag
             self.session.flush()
-            return existing
+            return existing, False
 
-        return self.add(
+        created = self.add(
             Business(
                 data_source_id=data_source_id,
                 external_id=external_id,
@@ -85,5 +93,8 @@ class BusinessRepository(BaseRepository[Business]):
                 longitude=longitude,
                 address=address,
                 geography_id=geography_id,
+                source_tags=source_tags,
+                source_tag=source_tag,
             )
         )
+        return created, True
