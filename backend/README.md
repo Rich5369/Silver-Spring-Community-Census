@@ -120,6 +120,7 @@ Base URL: `http://localhost:8000` · Swagger: `/docs` · Schema: `/openapi.json`
 | `GET` | `/api/v1/businesses/categories` | Categories present, with counts |
 | `GET` | `/api/v1/map/community` | Both map layers as GeoJSON |
 | `GET` | `/api/v1/insights/fenton-village` | Deterministic district summary |
+| `GET` | `/api/v1/opportunities?category=Cafe` | Competition and Census context; never a success score |
 | `POST` | `/api/v1/query` | Constrained natural-language question |
 
 Unversioned `/businesses` and `/geographies` remain hidden compatibility routes
