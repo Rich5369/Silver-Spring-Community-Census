@@ -7,7 +7,7 @@ import { queryBusinesses } from './services/businessQuery';
 import { useCommunityData } from './services/useCommunityData';
 
 function App() {
-  const { data, status, issue, usingFallback } = useCommunityData('Fenton Village');
+  const { data, status, issue, usingFallback } = useCommunityData();
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGeoJsonArea, setSelectedGeoJsonArea] = useState(null);
@@ -41,6 +41,7 @@ function App() {
           activeFilter={activeFilter}
           searchTerm={searchTerm}
           resultCount={visibleBusinesses.length}
+          totalCount={data.businesses.length}
           onFilterChange={setActiveFilter}
           onSearchChange={setSearchTerm}
           onClear={clearFilters}
@@ -52,6 +53,7 @@ function App() {
           <MapPanel
             areaName={selectedInsights.areaName}
             businesses={visibleBusinesses}
+            totalBusinessCount={data.businesses.length}
             businessLayerAvailable={data.businesses.length > 0}
             evidenceSources={data.profile.sources}
             communityGeoJson={data.communityGeoJson}
