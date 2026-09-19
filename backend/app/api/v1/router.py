@@ -8,11 +8,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import areas, businesses, insights, map as map_routes, query
+from app.api.v1 import areas, businesses, insights, map as map_routes, opportunities, query
 
 v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(areas.router)
 v1_router.include_router(businesses.router)
 v1_router.include_router(map_routes.router)
 v1_router.include_router(insights.router)
+v1_router.include_router(opportunities.router)
 v1_router.include_router(query.router)
