@@ -1,6 +1,6 @@
 const layerOptions = [
-  { id: 'businesses', label: 'Businesses' },
-  { id: 'community', label: 'Community / Demographics' },
+  { id: 'businesses', label: 'Business markers' },
+  { id: 'community', label: 'Community area boundaries' },
   { id: 'transit', label: 'Transit' },
 ];
 
@@ -9,7 +9,7 @@ function MapLayersControl({ visibility, availability, onChange }) {
     <details className="map-layers-control" open>
       <summary>Map Layers</summary>
       <div className="map-layer-options">
-        {layerOptions.map((layer) => {
+        {layerOptions.filter((layer) => availability[layer.id]).map((layer) => {
           const isAvailable = Boolean(availability[layer.id]);
 
           return (
