@@ -12,7 +12,7 @@ function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] 
   return (
     <aside className="insights-panel" aria-labelledby="insights-title">
       <div className="panel-heading">
-        <p className="eyebrow">Selected area</p>
+        <p className="eyebrow">Community insights</p>
         <h2 id="insights-title">{selectedInsights.areaName || 'Selected community'}</h2>
         <p>{selectedInsights.summary || 'Community details are not available yet.'}</p>
         <span className="demo-data-status">

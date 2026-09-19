@@ -28,14 +28,14 @@ function QueryPanel({
         </form>
       </div>
 
-      <div className="filter-area">
+      <div className="filter-area" role="group" aria-labelledby="business-filter-label">
         <div className="filter-summary">
-          <span className="filter-label">Filter businesses</span>
+          <span className="filter-label" id="business-filter-label">Filter businesses</span>
           <output className="result-count" aria-live="polite">
             {resultCount} {resultCount === 1 ? 'result' : 'results'}
           </output>
         </div>
-        <div className="filter-list">
+        <div className="filter-list" aria-label="Business categories">
           {businessFilters.map((filter) => {
             const isActive = activeFilter === filter.id;
 
