@@ -26,6 +26,7 @@ function MapPanel({
 }) {
   const [resetKey, setResetKey] = useState(0);
   const [view, setView] = useState('map');
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
   const [businessFocus, setBusinessFocus] = useState(null);
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
   const emptyMessage = hasActiveQuery
@@ -79,18 +80,30 @@ function MapPanel({
         </div>
       </div>
       <div className="results-toolbar">
-        <div className="view-toggle" role="group" aria-label="Business results view">
-          {views.map((mode) => (
-            <button
-              key={mode.id}
-              type="button"
-              aria-pressed={view === mode.id}
-              aria-controls={`business-${mode.id}-view`}
-              onClick={() => setView(mode.id)}
-            >
-              {mode.label}
-            </button>
-          ))}
+        <div className="results-view-actions">
+          <div className="view-toggle" role="group" aria-label="Business results view">
+            {views.map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                aria-pressed={view === mode.id}
+                aria-controls={`business-${mode.id}-view`}
+                onClick={() => setView(mode.id)}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+          <button
+            className="secondary-button map-size-toggle"
+            type="button"
+            aria-expanded={isMapExpanded}
+            aria-controls="business-map-view"
+            hidden={view !== 'map'}
+            onClick={() => setIsMapExpanded((expanded) => !expanded)}
+          >
+            {isMapExpanded ? 'Collapse map' : 'Expand map'}
+          </button>
         </div>
         <p className="result-summary">{describeResultCount(businesses.length, totalBusinessCount)}</p>
       </div>
@@ -121,7 +134,11 @@ function MapPanel({
           </div>
         </div>
       )}
-      <div id="business-map-view" className="business-map-view" hidden={view !== 'map'}>
+      <div
+        id="business-map-view"
+        className={`business-map-view${isMapExpanded ? ' expanded' : ''}`}
+        hidden={view !== 'map'}
+      >
         <CommunityMap
           isVisible={view === 'map'}
           businessFocus={businessFocus}
@@ -144,6 +161,7 @@ function MapPanel({
           emptyResultsMessage={emptyMessage}
           resetKey={resetKey}
           exploreKey={exploreKey}
+          layoutKey={isMapExpanded}
         />
       </div>
       <div id="business-list-view" className="business-list-panel" hidden={view !== 'list'}>
