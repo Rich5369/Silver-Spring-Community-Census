@@ -169,6 +169,7 @@ function App() {
           <PlanningTrends
             insights={selectedInsights}
             trends={governmentTrends}
+            serviceRequests={serviceRequests}
             trendGeography={governmentSummary?.study_area?.study_area?.name}
           />
           <div className="business-explorer-callout">
