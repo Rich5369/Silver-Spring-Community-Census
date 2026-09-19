@@ -12,10 +12,28 @@ from __future__ import annotations
 from collections.abc import Generator
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine
+import sqlite3
+
+from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import BACKEND_DIR, Settings, get_settings
+
+
+@event.listens_for(Engine, "connect")
+def _enable_sqlite_foreign_keys(dbapi_connection: object, _connection_record: object) -> None:
+    """Turn on foreign key enforcement for every SQLite connection.
+
+    SQLite ships with foreign keys **disabled** and applies the pragma per
+    connection, so without this every ``ForeignKey`` in the models would be
+    inert documentation: orphaned rows would insert happily and the evidence
+    guarantee would be unenforced. Registered against the generic ``Engine``
+    and gated on the driver so a future Postgres URL is unaffected.
+    """
+    if isinstance(dbapi_connection, sqlite3.Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 def _prepare_sqlite_path(database_url: str) -> None:
@@ -90,12 +108,11 @@ def get_session() -> Generator[Session, None, None]:
 def init_database() -> None:
     """Create any tables declared on :class:`app.models.base.Base`.
 
-    A no-op today because no domain models exist yet. It is wired up now so
-    that adding the first table (provenance-carrying Census observations and
-    OpenStreetMap places) requires no changes to application startup.
+    Safe to call repeatedly: ``create_all`` skips tables that already exist.
     """
-    # Imported here rather than at module scope so that importing the engine
-    # never pulls in the whole model package.
-    from app.models.base import Base
+    # Imported here rather than at module scope to avoid a circular import
+    # (models import nothing from this module, but repositories do). The
+    # package __init__ registers every model on Base.metadata.
+    from app.models import Base
 
     Base.metadata.create_all(bind=engine)
