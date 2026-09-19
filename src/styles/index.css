@@ -195,6 +195,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .source-intro { margin: 9px 0 0; color: #728078; font-size: 11px; line-height: 1.45; }
 .source-list { margin-top: 10px; }
 .opportunity-explorer { margin-top: 20px; padding: 16px; border: 1px solid #cadbcf; border-radius: 8px; background: #f0f6f1; }
+.government-panel { margin-top: 20px; padding: 16px; border: 1px solid #cadbcf; border-radius: 8px; background: #f7faf7; }
+.government-panel h3 { margin: 4px 0 0; color: #203c2f; font-size: 15px; }
+.government-panel-intro { margin: 8px 0; color: #5f7067; font-size: 11px; line-height: 1.45; }
+.government-panel-list { margin: 8px 0 12px; padding-left: 18px; color: #31493d; font-size: 11px; line-height: 1.6; }
+.government-panel-list.muted { color: #6c776f; }
+.government-panel details { color: #52685b; font-size: 11px; }
 .opportunity-explorer h3 { margin: 4px 0 0; color: #203c2f; font-size: 15px; }
 .opportunity-intro, .opportunity-evidence { margin: 8px 0 0; color: #5f7067; font-size: 11px; line-height: 1.45; }
 .opportunity-controls { display: grid; gap: 5px; margin-top: 12px; color: #31493d; font-size: 11px; font-weight: 700; }

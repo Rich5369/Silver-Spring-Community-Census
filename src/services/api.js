@@ -16,6 +16,7 @@ const ENDPOINTS = {
   communityMap: '/api/v1/map/community',
   communityProfile: '/api/v1/insights/fenton-village',
   query: '/api/v1/query',
+  governmentSummary: '/api/v1/government/summary',
 };
 
 async function requestJson(path, options = {}) {
@@ -30,6 +31,10 @@ async function requestJson(path, options = {}) {
 
   if (response.status === 204) return null;
   return response.json();
+}
+
+export async function getGovernmentSummary() {
+  return requestJson(ENDPOINTS.governmentSummary);
 }
 
 function malformedResponse(resource) {

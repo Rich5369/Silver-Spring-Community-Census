@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from './components/Header';
 import AskCommunity from './components/AskCommunity';
 import InsightsPanel from './components/InsightsPanel';
@@ -6,7 +6,7 @@ import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
 import { buildBusinessFilters, queryBusinesses } from './services/businessQuery';
 import { useCommunityData } from './services/useCommunityData';
-import { askCommunityQuestion } from './services/api';
+import { askCommunityQuestion, getGovernmentSummary } from './services/api';
 
 function App() {
   const { data, status, issue, usingFallback } = useCommunityData();
@@ -16,7 +16,15 @@ function App() {
   const [fentonExploreKey, setFentonExploreKey] = useState(0);
   const [question, setQuestion] = useState('');
   const [queryState, setQueryState] = useState({ status: 'idle', result: null, error: null });
+  const [governmentSummary, setGovernmentSummary] = useState(null);
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
+  useEffect(() => {
+    let active = true;
+    getGovernmentSummary()
+      .then((summary) => { if (active) setGovernmentSummary(summary); })
+      .catch(() => { if (active) setGovernmentSummary(null); });
+    return () => { active = false; };
+  }, []);
   // Once the default profile is a real tract, selecting that same tract would
   // otherwise compare it against itself.
   const comparisonAreas = useMemo(
@@ -116,6 +124,7 @@ function App() {
             insights={selectedInsights}
             comparisonAreas={comparisonAreas}
             businesses={data.businesses}
+            governmentSummary={governmentSummary}
           />
         </div>
       </main>
