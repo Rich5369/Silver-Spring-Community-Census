@@ -381,7 +381,7 @@ def build_observations(
         (
             "young_adult_share",
             "age_composition",
-            "Residents aged 20 to 34 are {percent}% of the population in the "
+            "Residents aged 18 to 34 are {percent}% of the population in the "
             "study area ({numerator} of {denominator}).",
         ),
         (
@@ -472,7 +472,7 @@ def build_insights(session: Session) -> InsightsResponse:
         return sum_metric(indexed, key, tract_count)
 
     population = total("total_population")
-    young_adults = total("young_adults_20_34")
+    young_adults = total("young_adults_18_34")
     households = total("occupied_housing_units")
     renters = total("renter_occupied_households")
     owners = total("owner_occupied_households")
@@ -508,7 +508,8 @@ def build_insights(session: Session) -> InsightsResponse:
     snapshot_values = [
         _count_value(population, "total_population", "Population", "people"),
         _count_value(households, "occupied_housing_units", "Occupied housing units", "households"),
-        _count_value(young_adults, "young_adults_20_34", "Residents aged 20-34", "people"),
+        _count_value(young_adults, "young_adults_18_34", "Residents aged 18-34", "people"),
+        _count_value(transit, "commute_public_transport", "Public transport commuters", "people"),
         _count_value(renters, "renter_occupied_households", "Renter-occupied households", "households"),
         _count_value(owners, "owner_occupied_households", "Owner-occupied households", "households"),
         _count_value(workers, "commuters_total", "Workers aged 16+", "people"),
@@ -520,14 +521,20 @@ def build_insights(session: Session) -> InsightsResponse:
             denominator_key="occupied_housing_units",
         ),
         ratio_value(
-            key="young_adult_share", label="Share aged 20-34",
+            key="young_adult_share", label="Share aged 18-34",
             numerator=young_adults, denominator=population,
-            numerator_key="young_adults_20_34", denominator_key="total_population",
+            numerator_key="young_adults_18_34", denominator_key="total_population",
         ),
         ratio_value(
             key="commute_active_share", label="Transit, walking or cycling share",
             numerator=active, denominator=workers,
             numerator_key="commute_public_transport + commute_walked + commute_bicycle",
+            denominator_key="commuters_total",
+        ),
+        ratio_value(
+            key="commute_transit_share", label="Public transport share",
+            numerator=transit, denominator=workers,
+            numerator_key="commute_public_transport",
             denominator_key="commuters_total",
         ),
         ratio_value(
