@@ -2,7 +2,7 @@ import EvidenceDetails from './EvidenceDetails';
 
 function StatCard({ label, value, note, sources = [] }) {
   const displayValue = value == null || (typeof value === 'number' && !Number.isFinite(value))
-    ? '—'
+    ? 'Data unavailable'
     : value;
 
   return (

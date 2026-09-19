@@ -1,8 +1,9 @@
 import EvidenceDetails from './EvidenceDetails';
+import ComparisonPanel from './ComparisonPanel';
 import StatCard from './StatCard';
 import { fentonVillageInsights } from '../data/communityInsights';
 
-function InsightsPanel({ insights = fentonVillageInsights }) {
+function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] }) {
   const selectedInsights = insights ?? fentonVillageInsights;
   const stats = Array.isArray(selectedInsights.stats) ? selectedInsights.stats : [];
   const sources = Array.isArray(selectedInsights.sources) ? selectedInsights.sources : [];
@@ -47,6 +48,8 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
           <EvidenceDetails sources={sources} label="Browse all evidence" />
         </div>
       </section>
+
+      <ComparisonPanel areas={comparisonAreas} />
     </aside>
   );
 }

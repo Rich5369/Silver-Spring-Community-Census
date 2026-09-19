@@ -7,7 +7,7 @@ const countBusinessesByCategory = (category) => (
 export const fentonVillageInsights = {
   areaName: 'Fenton Village',
   dataStatus: 'Demo profile — illustrative values only',
-  summary: 'A walkable commercial district represented here with mock community indicators.',
+  summary: 'Our primary demonstration area, chosen to show how local businesses, community context, and supporting evidence can be explored together.',
   stats: [
     {
       id: 'population',
