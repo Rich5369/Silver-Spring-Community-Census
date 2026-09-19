@@ -361,7 +361,12 @@ export default function PlanningTrends({ insights, trends, serviceRequests, tren
               <button type="button" aria-expanded={expanded} aria-controls={panelId} onClick={() => setOpen(expanded ? null : metric.id)}>
                 <span aria-hidden="true">{expanded ? '▾' : '▸'}</span>{metric.label}
               </button>
-              <div id={panelId} hidden={!expanded}><MetricPanel metric={metric} geography={geography} /></div>
+              {/* Only the open panel is mounted. Rendering all four on load
+                  built four charts and ran four projections the reader had not
+                  asked for; the wrapper stays so aria-controls still resolves. */}
+              <div id={panelId} hidden={!expanded}>
+                {expanded && <MetricPanel metric={metric} geography={geography} />}
+              </div>
             </div>
           );
           })}

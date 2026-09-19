@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { buildDemoProfile, withBusinessStats } from '../data/communityInsights';
 import { mockBusinesses } from '../data/mockBusinesses';
 import { fentonVillage } from '../data/mapData';
@@ -48,120 +48,129 @@ const loadingData = {
   communityGeoJson: null,
 };
 
+/**
+ * Load the community datasets, settling each request on its own.
+ *
+ * The four requests used to be awaited together, so the business layer - a
+ * ~77KB response - waited on the ~308KB map payload before anything appeared.
+ * Each now lands in its own slot and the exposed shape is recomputed from
+ * whatever has arrived, so one slow response no longer holds up the rest.
+ *
+ * The fallback rule is unchanged and deliberate: demo records appear only
+ * once the businesses request has actually failed, never while it is pending.
+ */
+const pendingSlot = { status: 'loading', value: null, error: null };
+
+const initialSlots = {
+  businesses: pendingSlot,
+  map: pendingSlot,
+  profile: pendingSlot,
+  categories: pendingSlot,
+};
+
+const settledSlots = {
+  businesses: { status: 'success', value: fallbackData.businesses, error: null },
+  map: { status: 'success', value: null, error: null },
+  profile: { status: 'success', value: fallbackData.profile, error: null },
+  categories: { status: 'success', value: fallbackData.categories, error: null },
+};
+
 export function useCommunityData(area) {
-  const [state, setState] = useState({
-    status: isApiConfigured ? 'loading' : 'success',
-    data: isApiConfigured ? loadingData : fallbackData,
-    error: null,
-    issue: null,
-    usingFallback: !isApiConfigured,
-  });
+  const [slots, setSlots] = useState(isApiConfigured ? initialSlots : settledSlots);
 
   useEffect(() => {
     if (!isApiConfigured) return undefined;
 
-    const controller = new AbortController();
-    const options = { signal: controller.signal };
-    setState({
-      status: 'loading',
-      data: loadingData,
-      error: null,
-      issue: null,
-      usingFallback: false,
-    });
+    let active = true;
+    setSlots(initialSlots);
 
-    // GET /api/v1/businesses is the one required request: it is the record of
-    // truth for the business layer. The tract polygons, the backend profile and
-    // the category vocabulary are enhancements, so settle all four - losing one
-    // degrades a single part of the UI rather than dropping the whole app back
-    // to demo data.
-    Promise.allSettled([
-      getBusinesses(options),
-      getCommunityMap(options),
-      getCommunityProfile(area, options),
-      getBusinessCategories(options),
-    ])
-      .then(([businessesResult, mapResult, profileResult, categoriesResult]) => {
-        if (controller.signal.aborted) return;
+    const settle = (key, promise) => promise.then(
+      (value) => { if (active) setSlots((current) => ({ ...current, [key]: { status: 'success', value, error: null } })); },
+      (error) => { if (active) setSlots((current) => ({ ...current, [key]: { status: 'error', value: null, error } })); },
+    );
 
-        const communityMap = mapResult.status === 'fulfilled' ? mapResult.value : null;
-        const businessesFailed = businessesResult.status === 'rejected';
-        if (businessesFailed) {
-          const fallbackProfile = profileResult.status === 'fulfilled' && profileResult.value
-            ? withBusinessStats(profileResult.value, fallbackData.businesses)
-            : resolveCommunityProfile(fallbackData.businesses, communityMap?.communityGeoJson ?? null);
-          setState({
-            status: 'error',
-            data: {
-              ...fallbackData,
-              profile: fallbackProfile,
-              communityGeoJson: communityMap?.communityGeoJson ?? null,
-            },
-            error: businessesResult.reason,
-            issue: businessesResult.reason?.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api',
-            usingFallback: true,
-          });
-          return;
-        }
-        // An empty successful response is authoritative. Never replace it with
-        // demo rows merely to keep markers or filter chips on screen.
-        const businesses = businessesResult.value;
+    settle('businesses', getBusinesses());
+    settle('map', getCommunityMap());
+    settle('profile', getCommunityProfile(area));
+    settle('categories', getBusinessCategories());
 
-        const areasFailed = mapResult.status === 'rejected';
-        const profileFailed = profileResult.status === 'rejected' || !profileResult.value;
-        const categoriesFailed = categoriesResult.status === 'rejected';
-        const degradedError = [businessesResult, mapResult, profileResult, categoriesResult]
-          .find((result) => result.status === 'rejected')?.reason ?? null;
-
-        // The backend serves the evidence-backed profile, so it is authoritative.
-        // Deriving one from the tract under Fenton Village is only the fallback
-        // for when that endpoint is unavailable. Either way its business counts
-        // come from `businesses` above - the same array the map, the list and
-        // the filter chips read - so no panel can contradict another.
-        const profile = profileFailed
-          ? resolveCommunityProfile(businesses, communityMap?.communityGeoJson ?? null)
-          : withBusinessStats(
-            { ...profileResult.value, sources: profileResult.value.sources ?? [] },
-            businesses,
-          );
-
-        setState({
-          status: businessesFailed || areasFailed || profileFailed || categoriesFailed
-            ? 'partial'
-            : 'success',
-          data: {
-            businesses,
-            profile,
-            // Counting the records we did load keeps every filter chip usable.
-            categories: businesses.length === 0
-              ? []
-              : categoriesFailed
-              ? countBusinessesByCategory(businesses)
-              : categoriesResult.value,
-            transit: [],
-            communityGeoJson: communityMap?.communityGeoJson ?? null,
-          },
-          error: degradedError,
-          issue: degradedError
-            ? (degradedError.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api')
-            : null,
-          usingFallback: false,
-        });
-      })
-      .catch((error) => {
-        // Defensive guard for unexpected errors outside individual request promises.
-        if (error.name === 'AbortError') return;
-        setState({
-          status: 'error',
-          data: fallbackData,
-          error,
-          issue: error.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api',
-          usingFallback: true,
-        });
-      });
-
-    return () => controller.abort();
+    return () => { active = false; };
   }, [area]);
 
-  return state;
+  return useMemo(() => {
+    const { businesses: businessSlot, map: mapSlot, profile: profileSlot, categories: categorySlot } = slots;
+    const communityGeoJson = mapSlot.value?.communityGeoJson ?? null;
+
+    // Nothing is decided until the business request resolves one way or the
+    // other. Until then the UI shows its loading state rather than demo rows.
+    if (businessSlot.status === 'loading') {
+      return {
+        status: 'loading',
+        data: { ...loadingData, communityGeoJson },
+        error: null,
+        issue: null,
+        usingFallback: false,
+      };
+    }
+
+    if (businessSlot.status === 'error') {
+      const profile = profileSlot.status === 'success' && profileSlot.value
+        ? withBusinessStats(profileSlot.value, fallbackData.businesses)
+        : resolveCommunityProfile(fallbackData.businesses, communityGeoJson);
+      return {
+        status: 'error',
+        data: { ...fallbackData, profile, communityGeoJson },
+        error: businessSlot.error,
+        issue: businessSlot.error?.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api',
+        usingFallback: true,
+      };
+    }
+
+    // An empty successful response is authoritative. Never replace it with
+    // demo rows merely to keep markers or filter chips on screen.
+    const businesses = businessSlot.value;
+    const profileFailed = profileSlot.status === 'error' || !profileSlot.value;
+
+    // The backend serves the evidence-backed profile, so it is authoritative.
+    // Deriving one from the tract under Fenton Village is only the fallback
+    // for when that endpoint is unavailable. Either way its business counts
+    // come from `businesses` above - the same array the map, the list and
+    // the filter chips read - so no panel can contradict another.
+    const profile = profileSlot.status === 'loading'
+      ? loadingData.profile
+      : profileFailed
+        ? resolveCommunityProfile(businesses, communityGeoJson)
+        : withBusinessStats(
+          { ...profileSlot.value, sources: profileSlot.value.sources ?? [] },
+          businesses,
+        );
+
+    const degradedError = [mapSlot, profileSlot, categorySlot]
+      .find(({ status }) => status === 'error')?.error ?? null;
+
+    return {
+      status: degradedError ? 'partial' : 'success',
+      data: {
+        businesses,
+        profile,
+        // Counting the records we did load keeps every filter chip usable.
+        categories: businesses.length === 0
+          ? []
+          : categorySlot.status === 'success'
+            ? categorySlot.value
+            : categorySlot.status === 'error'
+              ? countBusinessesByCategory(businesses)
+              : [],
+        transit: [],
+        communityGeoJson,
+      },
+      error: degradedError,
+      issue: degradedError
+        ? (degradedError.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api')
+        : null,
+      // A request still in flight is not a failure, so nothing is reported as
+      // degraded until it settles.
+      usingFallback: false,
+    };
+  }, [slots]);
 }

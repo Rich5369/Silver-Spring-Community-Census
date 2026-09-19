@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { CircleMarker, Popup, useMap } from 'react-leaflet';
 import EvidenceDetails from './EvidenceDetails';
 import BusinessStatus from './BusinessStatus';
@@ -123,4 +123,7 @@ function BusinessMarker({ business, sources = [], focusRequest, isSelected = fal
   );
 }
 
-export default BusinessMarker;
+// With ~207 markers on the map, re-rendering every one of them for a change
+// that touched a single marker was the bulk of the cost of filtering or
+// selecting. Props are all primitives or stable references from BusinessLayer.
+export default memo(BusinessMarker);

@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import BusinessStatus from './BusinessStatus';
 
-export default function BusinessList({
+function BusinessList({
   businesses,
   evidenceSources,
   selectedBusinessId = null,
@@ -65,3 +66,8 @@ export default function BusinessList({
     </div>
   );
 }
+
+// The list stays mounted behind the map so switching views is instant, which
+// also meant it re-rendered every row alongside the map. Its props change only
+// when the results actually change.
+export default memo(BusinessList);
