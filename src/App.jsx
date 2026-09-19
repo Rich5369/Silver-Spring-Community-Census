@@ -6,7 +6,7 @@ import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
 import { buildBusinessFilters, queryBusinesses } from './services/businessQuery';
 import { useCommunityData } from './services/useCommunityData';
-import { askCommunityQuestion, getGovernmentSummary } from './services/api';
+import { askCommunityQuestion, getGovernmentSummary, getGovernmentTrends } from './services/api';
 
 function App() {
   const { data, status, issue, usingFallback } = useCommunityData();
@@ -17,12 +17,16 @@ function App() {
   const [question, setQuestion] = useState('');
   const [queryState, setQueryState] = useState({ status: 'idle', result: null, error: null });
   const [governmentSummary, setGovernmentSummary] = useState(null);
+  const [governmentTrends, setGovernmentTrends] = useState(null);
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
   useEffect(() => {
     let active = true;
     getGovernmentSummary()
       .then((summary) => { if (active) setGovernmentSummary(summary); })
       .catch(() => { if (active) setGovernmentSummary(null); });
+    getGovernmentTrends()
+      .then((trends) => { if (active) setGovernmentTrends(trends); })
+      .catch(() => { if (active) setGovernmentTrends(null); });
     return () => { active = false; };
   }, []);
   // Once the default profile is a real tract, selecting that same tract would
@@ -128,6 +132,7 @@ function App() {
               comparisonAreas={comparisonAreas}
               businesses={data.businesses}
               governmentSummary={governmentSummary}
+              governmentTrends={governmentTrends}
               isAreaSelected={Boolean(selectedGeoJsonArea)}
               hasQueryResult={Boolean(queryState.result)}
             />

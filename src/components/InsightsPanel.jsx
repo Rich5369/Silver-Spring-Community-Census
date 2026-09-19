@@ -12,6 +12,7 @@ function InsightsPanel({
   comparisonAreas = [],
   businesses = [],
   governmentSummary = null,
+  governmentTrends = null,
   isAreaSelected = false,
   hasQueryResult = false,
 }) {
@@ -80,7 +81,7 @@ function InsightsPanel({
           </section>
 
           <OpportunityExplorer insights={selectedInsights} businesses={businesses} />
-          <GovernmentPlanningPanel summary={governmentSummary} />
+          <GovernmentPlanningPanel summary={governmentSummary} trends={governmentTrends} />
 
           <section className="evidence-section" aria-labelledby="evidence-title">
             <div className="section-heading">

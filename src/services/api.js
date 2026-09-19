@@ -37,6 +37,10 @@ export async function getGovernmentSummary() {
   return requestJson(ENDPOINTS.governmentSummary);
 }
 
+export async function getGovernmentTrends() {
+  return requestJson('/api/v1/government/trends');
+}
+
 function malformedResponse(resource) {
   const error = new Error(`Malformed ${resource} response`);
   error.name = 'MalformedResponseError';
