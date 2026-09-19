@@ -140,7 +140,6 @@ function App() {
           insights={selectedInsights}
           trends={governmentTrends}
           trendGeography={governmentSummary?.study_area?.study_area?.name}
-          businessCount={data.businesses.length}
         />
         <details className="exploration-tools">
           <summary>Business Opportunity Explorer and planning context</summary>
