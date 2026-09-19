@@ -15,6 +15,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.config import BACKEND_DIR, Settings
+from app.core.database import _normalise_sqlite_url
 
 ENV_EXAMPLE: Path = BACKEND_DIR / ".env.example"
 
@@ -88,3 +89,15 @@ def test_blank_cors_origins_rejected() -> None:
     """An empty origins list yields an API no browser can call."""
     with pytest.raises(ValidationError):
         Settings(cors_origins="   ")
+
+
+def test_relative_sqlite_url_is_anchored_to_backend_directory() -> None:
+    """The populated snapshot must be identical from any process cwd."""
+    url = _normalise_sqlite_url("sqlite:///./data/community.db")
+
+    assert url == f"sqlite:///{(BACKEND_DIR / 'data/community.db').resolve()}"
+
+
+def test_memory_sqlite_url_is_unchanged() -> None:
+    """Test databases and SQLite memory URLs must not be rewritten."""
+    assert _normalise_sqlite_url("sqlite:///:memory:") == "sqlite:///:memory:"
