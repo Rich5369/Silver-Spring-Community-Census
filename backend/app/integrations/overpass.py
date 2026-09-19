@@ -240,7 +240,7 @@ class OverpassClient:
         """Fetch named civic facilities without mixing them into businesses."""
         box = bbox.as_overpass_bbox()
         query = f'''[out:json][timeout:60];(
-          nwr["amenity"~"school|library|hospital|clinic|social_centre|community_centre|kindergarten|bus_station|social_facility"]({box});
+          nwr["amenity"~"school|library|hospital|clinic|place_of_worship|social_centre|community_centre|kindergarten|bus_station|social_facility"]({box});
           nwr["leisure"~"park|playground"]({box});
         );out center tags;'''
         try:
@@ -252,7 +252,7 @@ class OverpassClient:
             raise OverpassError(f"Overpass facility request failed: {exc}") from exc
         result = []
         seen = set()
-        types = {"school": "school", "kindergarten": "school", "library": "library", "hospital": "hospital", "clinic": "clinic", "park": "park", "playground": "park", "bus_station": "transit", "social_centre": "community", "community_centre": "community", "social_facility": "community"}
+        types = {"school": "school", "kindergarten": "school", "library": "library", "hospital": "hospital", "clinic": "clinic", "place_of_worship": "church", "park": "park", "playground": "park", "bus_station": "transit", "social_centre": "community", "community_centre": "community", "social_facility": "community"}
         for element in elements:
             tags = element.get("tags", {})
             name = str(tags.get("name", "")).strip()
