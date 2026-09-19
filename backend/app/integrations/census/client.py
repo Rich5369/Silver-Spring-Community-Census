@@ -63,8 +63,8 @@ class CensusClient:
     Args:
         year: ACS release year, e.g. 2024.
         dataset: Dataset path, e.g. ``"acs/acs5"``.
-        api_key: Optional for runtime and tests. The upstream API may require
-            one when running a fresh ingestion.
+        api_key: Optional. The API serves 500 requests/day unkeyed, so
+            ingestion works without one.
         timeout: Explicit connect/read/write/pool timeouts. The Census API
             can be slow for large tract queries, so the read timeout is
             generous while the connect timeout stays short.
@@ -109,9 +109,7 @@ class CensusClient:
         params = self._build_params(variables, geography)
         try:
             with httpx.Client(
-                timeout=self._timeout,
-                transport=self._transport,
-                follow_redirects=True,
+                timeout=self._timeout, transport=self._transport
             ) as client:
                 response = client.get(self.base_url, params=params)
         except httpx.TimeoutException as exc:
@@ -124,14 +122,6 @@ class CensusClient:
             raise CensusApiError(
                 f"Census request failed: {redact(str(exc))}"
             ) from exc
-
-        if response.url.path.endswith("/missing_key.html"):
-            raise CensusApiError(
-                "Census API rejected the unkeyed ingestion request. Set "
-                "CENSUS_API_KEY in backend/.env, or use a populated "
-                "backend/data/community.db from a teammate. The key is not "
-                "needed when serving data already stored in SQLite."
-            )
 
         if response.status_code != 200:
             # Deliberately not raise_for_status(): it leaks the key.
