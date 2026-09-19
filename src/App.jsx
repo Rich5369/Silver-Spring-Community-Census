@@ -91,6 +91,14 @@ function App() {
           result={queryState.result}
           error={queryState.error}
         />
+        <InsightsPanel
+          insights={selectedInsights}
+          comparisonAreas={comparisonAreas}
+          businesses={data.businesses}
+          governmentSummary={governmentSummary}
+          isAreaSelected={Boolean(selectedGeoJsonArea)}
+          hasQueryResult={Boolean(queryState.result)}
+        />
         <QueryPanel
           activeFilter={activeFilter}
           filters={filters}
@@ -119,12 +127,6 @@ function App() {
             onExploreFenton={exploreFentonVillage}
             exploreKey={fentonExploreKey}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
-          />
-          <InsightsPanel
-            insights={selectedInsights}
-            comparisonAreas={comparisonAreas}
-            businesses={data.businesses}
-            governmentSummary={governmentSummary}
           />
         </div>
       </main>

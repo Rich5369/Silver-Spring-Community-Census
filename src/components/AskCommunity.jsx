@@ -25,6 +25,7 @@ function AskCommunity({ question, onQuestionChange, onAsk, status, result, error
       <div className="ask-community-heading">
         <p className="eyebrow">Ask the community data</p>
         <h2 id="ask-community-title">What would you like to know about Fenton Village?</h2>
+        <p>Ask about people, businesses, transportation, or community characteristics.</p>
       </div>
       <form className="ask-community-form" onSubmit={(event) => { event.preventDefault(); onAsk(); }}>
         <label className="visually-hidden" htmlFor="community-question">Ask a question</label>
