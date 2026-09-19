@@ -31,7 +31,10 @@ class Settings(BaseSettings):
     # --- Service identity ---------------------------------------------------
     service_name: str = "community-intelligence-api"
     environment: str = "development"
-    debug: bool = True
+    # DEBUG is commonly set by shells and hosting tools to non-boolean values
+    # such as "release". Use a project-specific variable so those unrelated
+    # values cannot prevent the API from starting.
+    debug: bool = Field(default=True, validation_alias="SSCC_DEBUG")
 
     # --- Database -----------------------------------------------------------
     database_url: str = "sqlite:///./data/community.db"
@@ -40,8 +43,7 @@ class Settings(BaseSettings):
     # --- External data sources ----------------------------------------------
     # Held as SecretStr so the value is masked in reprs, logs and tracebacks;
     # read it deliberately with ``.get_secret_value()`` at the call site.
-    # Optional: the Census API serves up to 500 requests per day unkeyed, so
-    # the app must boot and the test suite must pass without it.
+    # Ingestion may require a key, but normal runtime and the test suite do not.
     census_api_key: SecretStr | None = Field(
         default=None,
         description="US Census Data API key. Never commit this value.",

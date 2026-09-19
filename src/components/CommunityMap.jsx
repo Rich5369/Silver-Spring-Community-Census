@@ -3,6 +3,7 @@ import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaf
 import MapDataLayers from './MapDataLayers';
 import MapLayersControl from './MapLayersControl';
 import { sanitizeGeoJsonFeatureCollection } from '../services/geoJsonAdapter';
+import { areAllDemoBusinesses } from '../services/provenance';
 
 function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, resetKey, isVisible }) {
   const map = useMap();
@@ -70,11 +71,15 @@ function LocationMarker({ location, onSelect }) {
     return () => element.removeEventListener('keydown', openWithKeyboard);
   }, [location.name, onSelect]);
 
+  // Business markers render into the default overlay pane. Drawing the landmark
+  // into the higher marker pane keeps it visible no matter how many businesses
+  // surround it - otherwise 207 of them simply paint over it.
   return (
     <CircleMarker
       ref={markerRef}
       center={location.position}
       radius={10}
+      pane="markerPane"
       pathOptions={{ color: '#ffffff', fillColor: '#c95832', fillOpacity: 1, weight: 3 }}
       eventHandlers={{ click: onSelect }}
     >
@@ -120,9 +125,7 @@ function CommunityMap({
     community: Boolean(safeCommunityGeoJson),
     transit: hasGeoJsonData(transitGeoJson),
   };
-  const isDemoLayer = businesses.length > 0 && businesses.every((business) => (
-    /demo|mock|illustrative/i.test(business.source || '')
-  ));
+  const isDemoLayer = areAllDemoBusinesses(businesses);
   const updateLayerVisibility = (layerId, isVisible) => {
     setLayerVisibility((current) => ({ ...current, [layerId]: isVisible }));
   };

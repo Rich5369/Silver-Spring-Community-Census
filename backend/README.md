@@ -282,7 +282,7 @@ All settings are environment variables with working defaults; see
 | --------------- | ---------------------------------------------------- | ------------------------------------------- |
 | `SERVICE_NAME`  | `community-intelligence-api`                         | Identifier returned by `/health`            |
 | `ENVIRONMENT`   | `development`                                        | Deployment environment label                |
-| `DEBUG`         | `true`                                               | Debug flag                                  |
+| `SSCC_DEBUG`    | `true`                                               | Backend debug flag                          |
 | `DATABASE_URL`  | `sqlite:///./data/community.db`                      | SQLAlchemy database URL                     |
 | `DATABASE_ECHO` | `false`                                              | Log every SQL statement                     |
 | `CENSUS_API_KEY`| _(unset)_                                            | **Secret.** US Census Data API key          |
@@ -300,8 +300,8 @@ All settings are environment variables with working defaults; see
   fail the build if a value or any long hex literal appears there.
 - It is typed `SecretStr`, so it is masked in reprs, logs and tracebacks. Read
   it deliberately with `.get_secret_value()`.
-- It is optional — the Census API allows 500 requests/day unkeyed, so the app
-  boots and the suite passes without it.
+- It is optional for serving existing SQLite data and for running the suite.
+  The upstream Census API may require it for a fresh ingestion.
 - Request a key at <https://api.census.gov/data/key_signup.html>. Keys are
   free and per-person; if one is exposed, request a replacement and stop using
   the old one.
