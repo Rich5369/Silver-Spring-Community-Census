@@ -8,6 +8,7 @@ function QueryPanel({
   onSearchChange,
   onClear,
   dataStatus,
+  dataIssue,
   usingFallback,
 }) {
   return (
@@ -57,7 +58,14 @@ function QueryPanel({
         </div>
         <p className="data-load-status" role="status">
           {dataStatus === 'loading' && 'Loading community data…'}
-          {dataStatus === 'error' && 'API unavailable — showing safe demo data.'}
+          {dataStatus === 'error' && dataIssue === 'malformed'
+            && 'Some API data was invalid — showing safe demo data.'}
+          {dataStatus === 'error' && dataIssue !== 'malformed'
+            && 'API unavailable — showing safe demo data.'}
+          {dataStatus === 'partial' && dataIssue === 'malformed'
+            && 'Some API data was invalid — available sections remain active.'}
+          {dataStatus === 'partial' && dataIssue !== 'malformed'
+            && 'Some data is unavailable — available sections remain active.'}
           {dataStatus === 'success' && usingFallback && 'Demo data mode — no backend URL configured.'}
         </p>
       </div>

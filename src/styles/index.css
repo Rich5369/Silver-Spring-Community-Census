@@ -69,6 +69,10 @@ button { cursor: pointer; }
 .map-panel { display: flex; flex-direction: column; min-width: 0; }
 .map-toolbar { height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #e0e6e1; }
 .map-toolbar h2, .panel-heading h2 { margin: 4px 0 0; font-size: 19px; }
+.map-toolbar-actions { display: flex; align-items: center; gap: 8px; }
+.primary-button { padding: 8px 12px; border: 1px solid #1e533b; border-radius: 7px; color: #fff; background: #246247; font-size: 12px; font-weight: 800; }
+.primary-button:hover { background: #1d523b; }
+.primary-button:focus-visible, .secondary-button:focus-visible { outline: 3px solid rgb(55 126 89 / 28%); outline-offset: 2px; }
 .secondary-button { padding: 8px 12px; border: 1px solid #ccd6ce; border-radius: 7px; color: #3f5549; background: #fff; font-size: 12px; font-weight: 700; }
 
 .map-canvas { position: relative; flex: 1; min-width: 0; min-height: 490px; overflow: hidden; background: #edf1eb; }
@@ -76,6 +80,15 @@ button { cursor: pointer; }
 .leaflet-popup-content { color: #24332b; line-height: 1.45; }
 .leaflet-popup-content strong { color: #1e4836; font-size: 14px; }
 .leaflet-popup-content p { margin: 6px 0 0; }
+.map-layers-control { position: absolute; z-index: 1000; top: 10px; right: 10px; width: 210px; border: 1px solid #cad4cc; border-radius: 7px; color: #31493d; background: rgb(255 255 255 / 96%); box-shadow: 0 3px 12px rgb(38 58 47 / 16%); }
+.map-layers-control > summary { padding: 9px 11px; font-size: 12px; font-weight: 800; cursor: pointer; }
+.map-layer-options { display: grid; gap: 2px; padding: 0 8px 8px; border-top: 1px solid #e2e8e3; }
+.map-layer-option { display: flex; align-items: flex-start; gap: 8px; padding: 8px 3px 5px; font-size: 11px; cursor: pointer; }
+.map-layer-option input { width: 15px; height: 15px; margin: 0; accent-color: #286b4c; }
+.map-layer-option > span, .map-layer-option strong, .map-layer-option small { display: block; }
+.map-layer-option strong { font-size: 11px; }
+.map-layer-option small { margin-top: 2px; color: #7b8881; font-size: 9px; line-height: 1.25; }
+.map-layer-option.unavailable { color: #7b8881; cursor: not-allowed; }
 .mock-layer-notice { position: absolute; z-index: 1000; right: 10px; bottom: 22px; max-width: calc(100% - 72px); padding: 7px 10px; border: 1px solid #e2c782; border-radius: 5px; color: #644d16; background: rgb(255 248 225 / 96%); box-shadow: 0 2px 8px rgb(24 35 29 / 14%); font-size: 11px; font-weight: 700; pointer-events: none; }
 .map-empty-results { position: absolute; z-index: 1000; top: 50%; left: 50%; display: flex; width: min(260px, calc(100% - 40px)); flex-direction: column; gap: 5px; padding: 16px; transform: translate(-50%, -50%); border: 1px solid #d0dad2; border-radius: 8px; color: #24332b; background: rgb(255 255 255 / 96%); box-shadow: 0 8px 24px rgb(38 58 47 / 16%); text-align: center; pointer-events: none; }
 .map-empty-results strong { color: #1e4836; font-size: 14px; }
@@ -121,6 +134,21 @@ button { cursor: pointer; }
 .source-card dd { margin: 0; color: #455b50; font-size: 10px; overflow-wrap: anywhere; }
 .source-card a { display: inline-block; margin-top: 9px; color: #246247; font-size: 10px; font-weight: 700; }
 .empty-data-message { grid-column: 1 / -1; margin: 0; color: #728078; font-size: 11px; }
+.comparison-panel { margin-top: 18px; border-top: 1px solid #e0e6e1; }
+.comparison-panel > summary { padding-top: 15px; color: #31493d; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.comparison-content { margin-top: 11px; }
+.comparison-selectors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.comparison-selectors label { color: #66776d; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.comparison-selectors select { width: 100%; height: 32px; margin-top: 4px; padding: 0 6px; border: 1px solid #ced8d0; border-radius: 5px; color: #31493d; background: #fff; font-size: 10px; text-transform: none; }
+.comparison-selectors select:disabled { color: #7b8881; background: #f1f3f1; }
+.comparison-empty, .comparison-note { margin: 9px 0 0; color: #728078; font-size: 10px; line-height: 1.4; }
+.comparison-table-wrap { margin-top: 11px; overflow-x: auto; }
+.comparison-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+.comparison-table th, .comparison-table td { padding: 6px 4px; border-bottom: 1px solid #e0e6e1; text-align: left; vertical-align: top; }
+.comparison-table thead th { color: #52645a; font-weight: 800; }
+.comparison-table tbody th { color: #52645a; font-weight: 700; }
+.comparison-table td { color: #1e4836; font-weight: 700; }
+.comparison-table .comparison-unavailable td { color: #7b8881; font-weight: 500; }
 
 @media (max-width: 900px) {
   .query-panel { align-items: stretch; flex-direction: column; gap: 14px; }
@@ -133,4 +161,6 @@ button { cursor: pointer; }
   .location-label { display: none; }
   .search-field button { padding: 0 12px; }
   .map-canvas, .leaflet-map { min-height: 420px; }
+  .map-toolbar { height: auto; min-height: 76px; align-items: flex-start; flex-direction: column; }
+  .map-toolbar-actions { width: 100%; flex-wrap: wrap; }
 }

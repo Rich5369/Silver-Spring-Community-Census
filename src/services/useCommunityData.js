@@ -13,6 +13,7 @@ const fallbackData = {
   businesses: mockBusinesses,
   profile: fentonVillageInsights,
   transit: [],
+  communityGeoJson: null,
 };
 
 export function useCommunityData(area) {
@@ -20,6 +21,7 @@ export function useCommunityData(area) {
     status: isApiConfigured ? 'loading' : 'success',
     data: fallbackData,
     error: null,
+    issue: null,
     usingFallback: !isApiConfigured,
   });
 
@@ -28,28 +30,60 @@ export function useCommunityData(area) {
 
     const controller = new AbortController();
     const options = { signal: controller.signal };
-    setState((current) => ({ ...current, status: 'loading', error: null }));
+    setState((current) => ({ ...current, status: 'loading', error: null, issue: null }));
 
-    Promise.all([
+    Promise.allSettled([
       getBusinesses(options),
       getCommunityProfile(area, options),
       getSources(area, options),
       getTransit(options),
     ])
-      .then(([businesses, profile, sources, transit]) => {
+      .then((results) => {
+        if (controller.signal.aborted) return;
+        const [businessesResult, profileResult, sourcesResult, transitResult] = results;
+        const failures = results.filter((result) => result.status === 'rejected');
+        const businesses = businessesResult.status === 'fulfilled'
+          ? businessesResult.value
+          : fallbackData.businesses;
+        const profile = profileResult.status === 'fulfilled'
+          ? profileResult.value
+          : fallbackData.profile;
+        const sources = profileResult.status === 'rejected'
+          ? fallbackData.profile.sources
+          : sourcesResult.status === 'fulfilled' ? sourcesResult.value : [];
+        const transit = transitResult.status === 'fulfilled' ? transitResult.value : [];
+        const error = failures[0]?.reason ?? null;
+        const issue = failures.some((result) => (
+          result.reason?.code === 'MALFORMED_RESPONSE' || result.reason instanceof SyntaxError
+        )) ? 'malformed' : failures.length > 0 ? 'api' : null;
+
+        if (import.meta.env.DEV && failures.length > 0) {
+          console.error('Some community data could not be loaded; safe fallbacks are active.', error);
+        }
+
         setState({
-          status: 'success',
-          data: { businesses, profile: { ...profile, sources }, transit },
-          error: null,
-          usingFallback: false,
+          status: failures.length === 0
+            ? 'success'
+            : failures.length === results.length ? 'error' : 'partial',
+          data: {
+            businesses,
+            profile: { ...profile, sources },
+            transit,
+            communityGeoJson: null,
+          },
+          error,
+          issue,
+          usingFallback: failures.length > 0,
         });
       })
       .catch((error) => {
+        // Defensive guard for unexpected errors outside individual request promises.
         if (error.name === 'AbortError') return;
         setState({
           status: 'error',
           data: fallbackData,
           error,
+          issue: error.code === 'MALFORMED_RESPONSE' ? 'malformed' : 'api',
           usingFallback: true,
         });
       });
