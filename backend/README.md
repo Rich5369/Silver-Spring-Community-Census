@@ -35,15 +35,243 @@ uvicorn app.main:app --reload --port 8000
 pytest
 ```
 
-## Endpoints
+## API
 
-| Method | Path      | Description            |
-| ------ | --------- | ---------------------- |
-| `GET`  | `/health` | Service liveness check |
+Base URL in development: `http://localhost:8000`. All data endpoints are
+prefixed **`/api/v1`**.
+
+Interactive docs: <http://localhost:8000/docs> · Schema:
+<http://localhost:8000/openapi.json>
+
+| Method | Path                              | Description                          |
+| ------ | --------------------------------- | ------------------------------------ |
+| `GET`  | `/health`                         | Liveness check (unversioned)         |
+| `GET`  | `/api/v1/areas`                   | List geographic areas                |
+| `GET`  | `/api/v1/areas/{geoid}`           | One area by GEOID                    |
+| `GET`  | `/api/v1/areas/{geoid}/metrics`   | Metrics for an area, with evidence   |
+| `GET`  | `/api/v1/businesses`              | Businesses, filterable by category   |
+| `GET`  | `/api/v1/businesses/categories`   | Categories present, with counts      |
+| `GET`  | `/api/v1/map/community`           | Both map layers as GeoJSON           |
+
+### Conventions
+
+- **Join on `geoid`, never on `name`.** Tract names are neither unique nor
+  stable across ACS vintages.
+- **`null` means "not available", never zero.** The Census suppresses
+  estimates for small populations; a suppressed metric has `"value": null`
+  and still carries full evidence.
+- **Every metric includes `evidence`.** There is no response shape that
+  returns a number without its dataset, year, variable and source URL.
+- **An empty result is a 200, not a 404.** Filtering to a category with no
+  matches returns `{"businesses": []}`. Only an unknown GEOID is a 404.
+- **GeoJSON positions are `[longitude, latitude]`** per RFC 7946 — the
+  reverse of Leaflet's `[lat, lng]`. `L.geoJSON` converts for you;
+  hand-built markers do not.
+
+### Examples
+
+All payloads below are real responses, trimmed for length.
+
+#### `GET /api/v1/areas?with_boundary_only=true`
+
+`with_boundary_only=true` returns the 14 Silver Spring study-area tracts that
+have map geometry. Without it you get every ingested area (233).
+
+```json
+{
+  "count": 1,
+  "areas": [
+    {
+      "geoid": "24031701701",
+      "name": "Census Tract 7017.01; Montgomery County; Maryland",
+      "geography_type": "tract",
+      "state_fips": "24",
+      "county_fips": "031",
+      "tract_code": "701701",
+      "has_boundary": true
+    }
+  ]
+}
+```
+
+Optional query parameters: `geography_type` (`tract`, `county`, …),
+`with_boundary_only` (bool), `limit` (1–1000).
+
+#### `GET /api/v1/areas/24031701701/metrics`
+
+22 metrics per tract. Derived metrics record the full formula in
+`source_variable`, so any number can be reproduced from the published tables.
+
+```json
+{
+  "area": { "geoid": "24031701701", "name": "Census Tract 7017.01; Montgomery County; Maryland", "...": "..." },
+  "count": 22,
+  "metrics": [
+    {
+      "metric_key": "bachelors_or_higher_share",
+      "value": 66.93,
+      "unit": "percent",
+      "evidence": {
+        "dataset": "American Community Survey 5-Year Estimates (2024)",
+        "dataset_year": 2024,
+        "source_variable": "(B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003_001E * 100",
+        "source_url": "https://api.census.gov/data/2024/acs/acs5",
+        "organization": "US Census Bureau"
+      }
+    }
+  ]
+}
+```
+
+Available `metric_key` values: `total_population`, `median_household_income`,
+`median_age`, `young_adults_20_34`, `young_adult_share`,
+`occupied_housing_units`, `owner_occupied_households`,
+`renter_occupied_households`, `renter_share`, `commuters_total`,
+`commute_drove_alone`, `commute_carpooled`, `commute_public_transport`,
+`commute_walked`, `commute_bicycle`, `worked_from_home`,
+`commute_active_share`, `worked_from_home_share`, `bachelors_or_higher`,
+`bachelors_or_higher_share`, `multilingual_households`,
+`multilingual_household_share`.
+
+#### `GET /api/v1/businesses/categories`
+
+Built from stored rows, so every category listed has at least one business
+behind it. Use it to build filter controls that cannot return empty.
+
+```json
+{
+  "count": 10,
+  "categories": [
+    { "category": "Restaurant", "count": 77 },
+    { "category": "Retail", "count": 35 },
+    { "category": "Professional Services", "count": 34 },
+    { "category": "Personal Care", "count": 20 },
+    { "category": "Cafe", "count": 15 },
+    { "category": "Grocery", "count": 13 },
+    { "category": "Health Services", "count": 9 }
+  ]
+}
+```
+
+#### `GET /api/v1/businesses?category=Cafe&limit=1`
+
+```json
+{
+  "businesses": [
+    {
+      "id": 174,
+      "name": "'TIS Corner Cafe",
+      "category": "Cafe",
+      "latitude": 38.9925641,
+      "longitude": -77.0309487,
+      "address": "1317 East-West Highway, 20910",
+      "source": "OpenStreetMap contributors (node/14118971901)",
+      "source_url": "https://www.openstreetmap.org/copyright",
+      "external_id": "node/14118971901",
+      "source_tag": "amenity=cafe",
+      "dataset": "OpenStreetMap POIs via Overpass API"
+    }
+  ]
+}
+```
+
+Query parameters: `category` (exact, case-sensitive), `q` (case-insensitive
+name search), `limit` (1–1000). `address` may be `null` — about 20% of OSM
+records carry no address tags.
+
+#### `GET /api/v1/map/community`
+
+Two standard FeatureCollections, each usable directly with `L.geoJSON`. They
+are separate because the layers are drawn differently — choropleth polygons
+vs point markers — and mixing them would force the client to partition again.
+
+```json
+{
+  "areas": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "id": "24031701701",
+        "geometry": { "type": "Polygon", "coordinates": [[[-77.03, 38.99], "..."]] },
+        "properties": {
+          "geoid": "24031701701",
+          "name": "Census Tract 7017.01; Montgomery County; Maryland",
+          "geography_type": "tract",
+          "boundary_source": {
+            "dataset": "TIGERweb Census Tracts (ACS 2024 vintage)",
+            "dataset_year": 2024,
+            "source_url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2024/MapServer/8",
+            "organization": "US Census Bureau"
+          },
+          "metrics": {
+            "total_population": {
+              "value": 3503.0,
+              "unit": "people",
+              "evidence": { "dataset": "American Community Survey 5-Year Estimates (2024)", "source_variable": "B01003_001E", "...": "..." }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "businesses": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "id": "node/13021040594",
+        "geometry": { "type": "Point", "coordinates": [-77.0242101, 38.9953504] },
+        "properties": {
+          "geoid": "node/13021040594",
+          "name": "&pizza",
+          "geography_type": "business",
+          "metrics": {},
+          "business": {
+            "id": 155,
+            "category": "Restaurant",
+            "address": "8455 Fenton Street, Silver Spring, MD 20910",
+            "source": "OpenStreetMap contributors (node/13021040594)",
+            "source_url": "https://www.openstreetmap.org/copyright",
+            "source_tag": "amenity=fast_food"
+          }
+        }
+      }
+    ]
+  },
+  "area_count": 14,
+  "business_count": 207
+}
+```
+
+Note `boundary_source` is cited separately from each metric's `evidence`:
+boundaries and estimates are different products with different vintages.
+
+#### Errors
+
+Unknown GEOID:
+
+```
+GET /api/v1/areas/24031999999   →   404
+{ "detail": "No area found with GEOID '24031999999'." }
+```
+
+Invalid parameter (`limit=0`) returns FastAPI's standard `422` validation
+body. An unknown `category` is **not** an error — it returns `200` with an
+empty list.
+
+#### `GET /health`
 
 ```json
 { "status": "ok", "service": "community-intelligence-api" }
 ```
+
+### Unversioned legacy routes
+
+`/businesses` and `/geographies` are still served, unprefixed, because the
+frontend's `ENDPOINTS` table in `src/services/api.js` calls bare paths. They
+are hidden from the OpenAPI schema so the documented contract is the `/api/v1`
+one, and can be removed once the frontend migrates.
 
 ## Configuration
 
