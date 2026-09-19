@@ -92,6 +92,10 @@ _INTENT_METRICS: dict[Intent, tuple[str, ...]] = {
     Intent.DISPLACEMENT: ("renter_share", "total_population"),
     Intent.GOVERNMENT_OVERVIEW: ("total_population", "renter_share", "young_adult_share", "multilingual_household_share"),
     Intent.TRENDS: (),
+    Intent.POLICY_SUPPORT: ("total_population", "renter_share", "multilingual_household_share", "young_adult_share"),
+    Intent.COMMUNITY_SUPPORT: ("renter_share", "multilingual_household_share", "commute_active_share"),
+    Intent.BUSINESS_HEALTH: (),
+    Intent.HEALTH_ACCESS: (),
 }
 
 _INTENT_RANGES: dict[Intent, tuple[str, ...]] = {
@@ -201,6 +205,14 @@ def _civic_answer(intent: Intent, insights: InsightsResponse, trend_years: list[
         return "The data can show renter share, population, income ranges, and observed ACS change, but it cannot establish displacement or its causes. Review the indicators and evidence as signals requiring housing and permit data."
     if intent is Intent.DIVERSITY:
         return "The available community indicators describe language, education, age, and housing composition across the study-area tracts. They describe the population; they are not a complete measure of cultural identity or representation."
+    if intent is Intent.BUSINESS_HEALTH:
+        return "Business health cannot be measured from the current OSM snapshot: it has mapped locations and categories, but no opening dates, closures, vacancies, revenue, or survival records. Business-license and vacancy data are needed before claiming decline or failure."
+    if intent is Intent.HEALTH_ACCESS:
+        return "The current dataset does not contain hospital utilization, clinic capacity, mortality, or health-outcome data. ACS demographics can help identify populations for outreach, but cannot show that community health is declining or that hospital activity caused it."
+    if intent is Intent.POLICY_SUPPORT:
+        return "The platform can support policy scoping, not choose policy for officials. It shows who lives in the study area, housing and mobility context, observed change, and where evidence coverage is incomplete. Pair these signals with program, permit, and public-health data before implementing a policy."
+    if intent is Intent.COMMUNITY_SUPPORT:
+        return "The strongest current support signals are housing tenure, language, age, and mobility indicators. These can help target outreach and service design; they do not by themselves prove unmet need or determine funding."
     return "This civic summary combines population, housing, community composition, ACS change, and mapped-area context. Each reported value is returned with its source evidence."
     return (
         "The data cannot identify which business will be successful or recommend "
@@ -247,7 +259,7 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
     if intent in (Intent.INCOME, Intent.AGE, Intent.COMMUNITY_OVERVIEW, Intent.DIVERSITY):
         limitations.append(MEDIAN_LIMITATION)
 
-    if intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW):
+    if intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW, Intent.POLICY_SUPPORT, Intent.COMMUNITY_SUPPORT, Intent.BUSINESS_HEALTH, Intent.HEALTH_ACCESS):
         metrics = _select(insights.community_snapshot, _INTENT_METRICS[intent])
         answer = _civic_answer(intent, insights, sorted({point.year for series in trends for point in series.points}))
         for metric in metrics:
