@@ -6,7 +6,7 @@ const validPoints = (points = []) => points
   .slice(-5);
 
 /** A deliberately conservative annual OLS projection for planning context. */
-export function buildLinearProjection(points, { nonNegative = true } = {}) {
+export function buildLinearProjection(points, { nonNegative = true, maximum = null } = {}) {
   const historical = validPoints(points);
   if (historical.length < 3) return { historical, projected: [], status: 'insufficient' };
 
@@ -24,7 +24,9 @@ export function buildLinearProjection(points, { nonNegative = true } = {}) {
     return { year, value: intercept + (slope * year) };
   });
   const range = Math.max(...historical.map(({ value }) => value)) - Math.min(...historical.map(({ value }) => value));
-  const invalid = projected.some(({ value }) => !Number.isFinite(value) || (nonNegative && value < 0));
+  const invalid = projected.some(({ value }) => !Number.isFinite(value)
+    || (nonNegative && value < 0)
+    || (maximum !== null && value > maximum));
   const excessive = projected.some(({ value }) => Math.abs(value - last.value) > Math.max(Math.abs(last.value), range * 6));
   if (invalid || excessive) return { historical, projected: [], status: 'unstable' };
   return { historical, projected, status: 'available', method: 'Ordinary least-squares linear regression' };

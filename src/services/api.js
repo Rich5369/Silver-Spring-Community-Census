@@ -182,6 +182,41 @@ const HEADLINE_COMMUNITY_METRICS = [
   { source: 'metric', key: 'multilingual_household_share' },
 ];
 
+// Planning Trends renders these as accordions of their own. GET
+// /government/trends carries population, renter share and income only, so the
+// snapshot is the sole frontend-reachable source for these two: they arrive as
+// a current value with its evidence and no historical series behind them.
+const TREND_INDICATOR_KEYS = ['rent_burden_share', 'unemployment_rate'];
+
+/** Current value plus provenance for each indicator the snapshot supports. */
+const buildTrendIndicators = (values) => Object.fromEntries(
+  TREND_INDICATOR_KEYS.flatMap((key) => {
+    const item = values[key];
+    const value = finiteNumber(item?.value);
+    if (!item?.available || value === null) return [];
+    // A record without a release year cannot be cited as one, so it is dropped
+    // rather than shown with an invented or blank vintage.
+    const evidence = (item.evidence ?? []).flatMap((record) => (
+      record?.dataset_year == null ? [] : [{
+        organization: String(record.organization || ''),
+        dataset: String(record.dataset || ''),
+        year: Number(record.dataset_year),
+        variable: String(record.source_variable || ''),
+        url: String(record.source_url || ''),
+      }]
+    ));
+    return [[key, {
+      key,
+      label: String(item.label || key),
+      value,
+      unit: String(item.unit || ''),
+      formula: String(item.derivation?.formula || ''),
+      tractCount: finiteNumber(item.coverage?.tracts_with_data) ?? 0,
+      evidence,
+    }]];
+  }),
+);
+
 const formatMetricValue = (value, unit) => {
   if (value === null || value === undefined) return 'Data unavailable';
   if (unit === 'percent') {
@@ -244,6 +279,7 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       dataStatus: 'Connected ACS and OpenStreetMap data',
       summary: payload.study_area?.method || 'Deterministic summary of stored community data.',
       stats,
+      indicators: buildTrendIndicators(values),
       opportunityMetrics: Object.fromEntries(
         ['young_adult_share', 'commute_active_share', 'renter_share'].flatMap((key) => {
           const item = values[key];
@@ -260,6 +296,7 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       dataStatus: 'No profile data available',
       summary: 'The backend returned no community profile for this area.',
       stats: [],
+      indicators: {},
       sources: [],
     };
   }
@@ -305,6 +342,7 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
       stat('restaurants', 'Restaurants', formatInteger(finiteNumber(statistics.restaurantCount))),
       stat('retail', 'Retail', formatInteger(finiteNumber(statistics.retailCount))),
     ],
+    indicators: {},
     sources: [],
   };
 }

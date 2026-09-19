@@ -1,7 +1,7 @@
 const capabilities = [
   { title: 'Explore communities', text: 'Select Census areas, understand local conditions, and ask questions about the data.' },
   { title: 'Understand local businesses', text: 'Search and filter connected business records around Fenton Village.' },
-  { title: 'Analyze planning trends', text: 'Review supported population, income, and community indicators over time.' },
+  { title: 'Analyze community trends', text: 'Review supported population, income, and community indicators over time.' },
   { title: 'Trace the evidence', text: 'See the public datasets behind important statistics and answers.' },
 ];
 
@@ -16,8 +16,8 @@ export default function HomeIntro({ onExplore, onViewTrends }) {
           in one connected place.
         </p>
         <div className="hero-actions">
-          <button className="primary-button" type="button" onClick={onExplore}>Explore the map</button>
-          <button className="secondary-button" type="button" onClick={onViewTrends}>View planning trends</button>
+          <button className="primary-button" type="button" onClick={onViewTrends}>View community trends</button>
+          <button className="secondary-button" type="button" onClick={onExplore}>Explore the map</button>
         </div>
         <p className="hero-audience">Built to help planners and communities understand local conditions through public evidence.</p>
       </div>

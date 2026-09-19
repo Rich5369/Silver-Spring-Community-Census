@@ -3,8 +3,17 @@ import { buildLinearProjection, buildRangeProjection } from '../utils/projection
 
 const INTEGER = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 const CURRENCY = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const PERCENT = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-const formatValue = (value, format) => (format === 'currency' ? CURRENCY : INTEGER).format(value);
+// A share is already a percentage, so a projection of one is bounded at both
+// ends: a negative rate is impossible and one above 100% is not a rate at all.
+const SHARE_BOUNDS = { maximum: 100 };
+
+const formatValue = (value, format) => {
+  if (format === 'currency') return CURRENCY.format(value);
+  if (format === 'percent') return `${PERCENT.format(value)}%`;
+  return INTEGER.format(value);
+};
 
 /** A range point renders as "low – high"; a total renders as one number. */
 const formatPoint = (point, format, isRange) => (isRange
@@ -67,7 +76,7 @@ function TrendChart({ label, historical, projected, isRange }) {
   );
 }
 
-function Evidence({ source, geography, fallback }) {
+function Evidence({ source, geography, fallback, note }) {
   if (!source) {
     return (
       <details className="trend-evidence-details">
@@ -84,18 +93,25 @@ function Evidence({ source, geography, fallback }) {
   }
   const years = source.years ?? [];
   const urls = source.urls ?? [];
+  // A field the payload does not carry is left out rather than filled with a
+  // placeholder, so nothing here reads as metadata the source did not supply.
+  const fields = [
+    ['Source organization', source.organization],
+    ['Dataset', source.dataset],
+    ['Releases', years.join(', ')],
+    ['Geography', geography],
+    ['Tracts aggregated', source.tract_count || ''],
+    ['Table / variable', source.table],
+  ].filter(([, value]) => value !== '' && value != null);
   return (
     <details className="trend-evidence-details">
-      <summary><span>View evidence</span><small>{years.length} historical {years.length === 1 ? 'release' : 'releases'}</small></summary>
+      <summary><span>View evidence</span><small>{years.length} {years.length === 1 ? 'release' : 'releases'}</small></summary>
       <div className="trend-evidence-content">
-        <p>Every value below comes from the connected government trends data flow. Projected values are calculated in this browser from these displayed inputs.</p>
+        <p>{note ?? 'Every value below comes from the connected government trends data flow. Projected values are calculated in this browser from these displayed inputs.'}</p>
         <dl className="trend-evidence">
-          <div><dt>Source organization</dt><dd>{source.organization || 'Not provided'}</dd></div>
-          <div><dt>Dataset</dt><dd>{source.dataset || 'Not provided'}</dd></div>
-          <div><dt>Historical releases</dt><dd>{years.join(', ') || 'Not provided'}</dd></div>
-          <div><dt>Geography</dt><dd>{geography}</dd></div>
-          <div><dt>Tracts aggregated</dt><dd>{source.tract_count || 'Not provided'}</dd></div>
-          <div><dt>Table / variable</dt><dd>{source.table || 'Not provided'}</dd></div>
+          {fields.map(([term, value]) => (
+            <div key={term}><dt>{term}</dt><dd>{value}</dd></div>
+          ))}
         </dl>
         {urls.length > 0 && (
           <ul className="trend-evidence-links">
@@ -109,37 +125,91 @@ function Evidence({ source, geography, fallback }) {
   );
 }
 
+/**
+ * Fold a snapshot indicator's per-variable evidence into one series source.
+ *
+ * A ratio metric cites both its numerator and its denominator, and both name
+ * the same release, so the releases are keyed by year to keep `years` and
+ * `urls` parallel for the evidence links.
+ */
+function indicatorSource(indicator) {
+  const releases = new Map();
+  (indicator.evidence ?? []).forEach((record) => {
+    if (!releases.has(record.year)) releases.set(record.year, record.url);
+  });
+  const years = [...releases.keys()].sort((a, b) => a - b);
+  const variables = [...new Set((indicator.evidence ?? []).map(({ variable }) => variable).filter(Boolean))];
+  return {
+    organization: indicator.evidence?.[0]?.organization ?? '',
+    dataset: indicator.evidence?.[0]?.dataset ?? '',
+    table: variables.join(', '),
+    years,
+    urls: years.map((year) => releases.get(year)).filter(Boolean),
+    tract_count: indicator.tractCount,
+  };
+}
+
 function MetricPanel({ metric, geography }) {
   const isRange = metric.series?.basis === 'range';
   const points = metric.series?.points ?? [];
+  const bounds = metric.projectionBounds;
   const projection = useMemo(
-    () => (isRange ? buildRangeProjection(points) : buildLinearProjection(points)),
-    [isRange, points],
+    () => (isRange ? buildRangeProjection(points, bounds) : buildLinearProjection(points, bounds)),
+    [isRange, points, bounds],
   );
   const historical = projection.historical;
   const source = metric.series?.source ?? null;
+  const current = metric.current ?? null;
+  const name = metric.metricName ? <p className="trend-metric-name">{metric.metricName}</p> : null;
   if (!historical.length) {
+    // No series reaches the frontend for this metric, but the snapshot may
+    // still carry its latest observed value. Showing that is better than an
+    // empty panel, and it is labelled as a single release rather than a trend.
     return (
       <div className="trend-empty">
+        {name}
+        {current && (
+          <div className="trend-summary">
+            <div>
+              <span>Current</span>
+              <strong>{formatValue(current.value, metric.format)}</strong>
+              {current.evidence?.[0]?.year && <small>{current.evidence[0].year} release</small>}
+            </div>
+          </div>
+        )}
         <strong>{metric.unavailable}</strong>
         <p>Not enough historical data for a responsible projection.</p>
-        <Evidence source={source} geography={geography} fallback={metric.unavailable} />
+        {current?.formula && <p className="trend-note">{current.formula}</p>}
+        <Evidence
+          source={current ? indicatorSource(current) : source}
+          geography={geography}
+          fallback={metric.unavailable}
+          note={current ? 'This value comes from the connected community snapshot. No historical series is published for this metric, so no projection is calculated.' : undefined}
+        />
       </div>
     );
   }
   const first = historical[0];
   const last = historical.at(-1);
+  // A metric already expressed as a percentage moves in percentage points.
+  // Reporting its change as a percent would describe a percentage of a
+  // percentage - a different quantity, and one that reads far larger.
+  const isShare = metric.format === 'percent';
   const changeFor = (edge) => {
     const from = edge ? first[edge] : first.value;
     const to = edge ? last[edge] : last.value;
+    if (isShare) return to - from;
     return from === 0 ? null : ((to - from) / Math.abs(from)) * 100;
   };
-  const percent = (value) => (value == null ? 'Not available' : `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`);
+  const percent = (value) => (value == null
+    ? 'Not available'
+    : `${value >= 0 ? '+' : ''}${value.toFixed(1)}${isShare ? ' pp' : '%'}`);
   const change = isRange
     ? `${percent(changeFor('low'))} / ${percent(changeFor('high'))}`
     : percent(changeFor(null));
   return (
     <div className="trend-content">
+      {name}
       <div className="trend-summary">
         <div>
           <span>{isRange ? 'Current range' : 'Current'}</span>
@@ -149,7 +219,7 @@ function MetricPanel({ metric, geography }) {
         <div>
           <span>Historical change</span>
           <strong>{change}</strong>
-          <small>over {historical.length} releases{isRange ? ', low / high' : ''}</small>
+          <small>{isShare ? 'percentage points ' : ''}over {historical.length} releases{isRange ? ', low / high' : ''}</small>
         </div>
         <div>
           <span>5-year trend-based projection</span>
@@ -192,8 +262,9 @@ function MetricPanel({ metric, geography }) {
         <p>
           The {historical.length} observations from {first.year}–{last.year} are fitted with ordinary
           least-squares linear regression{isRange ? ', with the low and high edges fitted separately' : ''}.
-          The dashed values cover {last.year + 1}–{last.year + 5}, are constrained to valid non-negative
-          values, and are a planning aid—not an official government forecast. Three overlapping ACS
+          The dashed values cover {last.year + 1}–{last.year + 5}, are constrained to the valid range
+          for this metric{isShare ? ' (0–100%)' : ' (non-negative)'}, and are a planning aid—not an
+          official government forecast. Three overlapping ACS
           releases is a thin basis for a five-year projection; treat it as directional only.
         </p>
       </details>
@@ -231,6 +302,10 @@ export default function PlanningTrends({ insights, trends, serviceRequests, tren
   const sameStudyArea = Boolean(trendGeography) && normalizedName(geography) === normalizedName(trendGeography);
   const series = sameStudyArea ? (trends?.series ?? []) : [];
   const findSeries = (keys) => series.find((item) => keys.includes(item.key));
+  // Indicators travel with the profile whose name is shown above, so they need
+  // no geography check of their own: a selected tract carries none, exactly as
+  // the study-area series are withheld for a tract.
+  const indicators = insights?.indicators ?? {};
   const metrics = [
     {
       id: 'population',
@@ -245,14 +320,38 @@ export default function PlanningTrends({ insights, trends, serviceRequests, tren
       series: findSeries(['median_household_income']),
       unavailable: 'Historical trend unavailable for this metric.',
     },
+    {
+      id: 'housing',
+      label: 'Housing costs',
+      format: 'percent',
+      // The connected ACS data carries no median gross rent or median monthly
+      // housing cost, so rent burden is the supported cost measure. Its exact
+      // threshold is named here because "housing costs" alone would not say
+      // which quantity the number is.
+      metricName: 'Renter households spending 35% or more of income on gross rent',
+      series: findSeries(['rent_burden_share']),
+      current: indicators.rent_burden_share ?? null,
+      projectionBounds: SHARE_BOUNDS,
+      unavailable: 'Historical trend unavailable for this metric.',
+    },
+    {
+      id: 'unemployment',
+      label: 'Unemployment',
+      format: 'percent',
+      metricName: 'Unemployment rate among the civilian labor force',
+      series: findSeries(['unemployment_rate']),
+      current: indicators.unemployment_rate ?? null,
+      projectionBounds: SHARE_BOUNDS,
+      unavailable: 'Historical trend unavailable for this metric.',
+    },
   ];
   return (
     <section className="planning-trends" id="planning-trends" aria-labelledby={`${baseId}-title`}>
       <div className="planning-trends-heading">
-        <div><p className="eyebrow">For city planners</p><h2 id={`${baseId}-title`}>Planning Trends</h2></div>
+        <div><h2 id={`${baseId}-title`}>Community Trends &amp; Outlook</h2></div>
         <p><strong>{geography}</strong><span>Montgomery County, Maryland</span></p>
       </div>
-      <p className="planning-trends-intro">Understand how key community indicators are changing over time through verified releases and transparent planning projections.</p>
+      <p className="planning-trends-intro">Explore how key community indicators are changing over time using verified public data and transparent trend-based projections.</p>
       <div className="trend-accordions">
           {metrics.map((metric) => {
           const expanded = open === metric.id;

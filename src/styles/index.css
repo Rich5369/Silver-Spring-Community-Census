@@ -149,6 +149,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .trend-accordion > button:hover, .trend-accordion > button[aria-expanded='true'] { background: #eef5f0; }
 .trend-accordion > button span { width: 12px; color: #286b4c; }
 .trend-content, .trend-empty { padding: 16px; border-top: 1px solid #d7e0d9; }
+.trend-metric-name { margin: 0 0 10px; color: #52645a; font-size: 11px; font-weight: 700; line-height: 1.4; }
+.trend-empty .trend-summary { margin: 0 0 12px; }
 .trend-empty { color: #536c5f; font-size: 12px; }
 .trend-empty p { margin: 7px 0 0; color: #203c2f; }
 .trend-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
