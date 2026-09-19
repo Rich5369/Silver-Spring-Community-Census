@@ -1,8 +1,22 @@
 function SourceCard({ source = {} }) {
   const fallback = 'Not provided';
+  const isDemo = /demo|mock|illustrative/i.test(
+    `${source.organization || ''} ${source.dataset || ''} ${source.year || ''}`,
+  );
+  let sourceUrl = null;
+
+  try {
+    const parsedUrl = new URL(source.url);
+    if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+      sourceUrl = parsedUrl.href;
+    }
+  } catch {
+    sourceUrl = null;
+  }
 
   return (
     <article className="source-card">
+      {isDemo && <span className="source-status">Demo data</span>}
       <strong>{source.organization || 'Source pending'}</strong>
       <span>{source.dataset || 'Dataset not provided'}</span>
       <dl>
@@ -19,9 +33,9 @@ function SourceCard({ source = {} }) {
           <dd>{source.table || fallback}</dd>
         </div>
       </dl>
-      {source.url && (
-        <a href={source.url} target="_blank" rel="noreferrer">
-          View source
+      {sourceUrl && (
+        <a href={sourceUrl} target="_blank" rel="noreferrer">
+          View Source
         </a>
       )}
     </article>

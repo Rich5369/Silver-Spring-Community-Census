@@ -2,7 +2,7 @@ import { useState } from 'react';
 import CommunityMap from './CommunityMap';
 import { fentonVillage, silverSpringMapView } from '../data/mapData';
 
-function MapPanel({ businesses = [], hasActiveQuery = false }) {
+function MapPanel({ businesses = [], evidenceSources = [], hasActiveQuery = false }) {
   const [resetKey, setResetKey] = useState(0);
 
   return (
@@ -26,6 +26,7 @@ function MapPanel({ businesses = [], hasActiveQuery = false }) {
         zoom={silverSpringMapView.zoom}
         locations={[fentonVillage]}
         businesses={businesses}
+        evidenceSources={evidenceSources}
         showEmptyResults={businesses.length === 0}
         emptyResultsMessage={hasActiveQuery
           ? 'Try another category or clear the search.'
