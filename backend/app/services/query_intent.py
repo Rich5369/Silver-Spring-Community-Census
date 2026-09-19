@@ -80,13 +80,18 @@ _CATEGORY_SYNONYMS: tuple[tuple[str, str], ...] = (
 # --- Intent keywords --------------------------------------------------------
 # Ordered most specific to most general; the first intent with a match wins.
 _INTENT_KEYWORDS: tuple[tuple[Intent, tuple[str, ...]], ...] = (
+    (Intent.DISPLACEMENT, ("displacement", "gentrification", "being pushed out", "housing pressure", "affordability")),
+    (Intent.TRENDS, ("trend", "trends", "over time", "changed", "change over", "historical")),
+    (Intent.DIVERSITY, ("diversity", "diverse", "languages", "multilingual", "representation", "community composition")),
+    (Intent.GOVERNMENT_OVERVIEW, ("city planning", "city planners", "city officials", "government", "public planning", "policy", "municipal", "officials", "planners")),
     (
         Intent.BUSINESS_OPPORTUNITY,
         (
             "successful opening", "successfully opening", "business opportunity",
             "business to open", "what should i open", "what could i open",
             "which business should", "which business could", "open a business",
-            "opening a business", "open here", "opening here",
+            "opening a business", "open here", "opening here", "market gap",
+            "underserved business", "new business", "customer opportunity",
         ),
     ),
     (
@@ -96,6 +101,7 @@ _INTENT_KEYWORDS: tuple[tuple[Intent, tuple[str, ...]], ...] = (
             "business categories", "categories of business", "types of business",
             "kinds of business", "business mix", "what businesses are",
             "breakdown of business", "business landscape",
+            "local economy", "commercial landscape", "business environment",
         ),
     ),
     (
@@ -103,7 +109,7 @@ _INTENT_KEYWORDS: tuple[tuple[Intent, tuple[str, ...]], ...] = (
         (
             "commute", "commuting", "transit", "public transport", "drive to work",
             "get to work", "walk to work", "travel to work", "work from home",
-            "remote work", "transportation",
+            "remote work", "transportation", "travel patterns", "how workers travel",
         ),
     ),
     (
@@ -111,15 +117,16 @@ _INTENT_KEYWORDS: tuple[tuple[Intent, tuple[str, ...]], ...] = (
         (
             "rent", "renter", "renters", "own", "owner", "homeowner", "housing",
             "tenure", "households", "apartment",
+            "housing pressure", "housing stability", "rent versus own",
         ),
     ),
     (
         Intent.INCOME,
-        ("income", "earn", "earnings", "salary", "wealth", "affluent", "wages"),
+        ("income", "earn", "earnings", "salary", "wealth", "affluent", "wages", "economic profile", "purchasing power"),
     ),
     (
         Intent.AGE,
-        ("age", "ages", "old", "young", "younger", "millennial", "demographic profile"),
+        ("age", "ages", "old", "young", "younger", "millennial", "demographic profile", "demographics", "community composition", "diversity", "who lives"),
     ),
     (
         Intent.POPULATION,

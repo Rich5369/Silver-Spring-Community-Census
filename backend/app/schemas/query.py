@@ -17,6 +17,7 @@ from app.schemas.business import BusinessOut
 from app.schemas.evidence import Evidence
 from app.schemas.geojson import FeatureCollection
 from app.schemas.insights import CategoryBreakdown, SnapshotValue, ValueRange
+from app.schemas.trends import TrendSeries
 
 
 class Intent(str, Enum):
@@ -36,6 +37,10 @@ class Intent(str, Enum):
     BUSINESS_CATEGORIES = "business_categories"
     NEARBY_BUSINESSES = "nearby_businesses"
     BUSINESS_OPPORTUNITY = "business_opportunity"
+    GOVERNMENT_OVERVIEW = "government_overview"
+    TRENDS = "trends"
+    DIVERSITY = "diversity"
+    DISPLACEMENT = "displacement"
 
 
 #: The only geography the MVP has data for.
@@ -54,6 +59,9 @@ SUGGESTED_QUESTIONS: tuple[str, ...] = (
     "What kinds of businesses are in the area?",
     "How many restaurants are nearby?",
     "Which business could be successful opening here?",
+    "How has the community changed over time?",
+    "What are the diversity indicators?",
+    "Are there signs of housing displacement?",
 )
 
 
@@ -133,6 +141,7 @@ class QueryResponse(BaseModel):
     businesses: list[BusinessOut] = Field(default_factory=list)
     map: QueryMap = Field(default_factory=QueryMap)
     evidence: list[Evidence] = Field(default_factory=list)
+    trends: list[TrendSeries] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     suggestions: list[str] = Field(
         default_factory=list,
