@@ -19,7 +19,10 @@ const ENDPOINTS = {
   governmentSummary: '/api/v1/government/summary',
 };
 
-const REQUEST_TIMEOUT_MS = 8000;
+// Render's free service can take more than 20 seconds to wake from a cold
+// start. Warm requests still complete immediately; this ceiling only prevents
+// the browser from abandoning a valid first request before the service starts.
+const REQUEST_TIMEOUT_MS = 30000;
 /**
  * In-flight and resolved GET responses, keyed by path.
  *
@@ -46,12 +49,8 @@ function sharedJson(path) {
 }
 
 async function requestJson(path, options = {}) {
-  const method = (options.method || 'GET').toUpperCase();
-  const cacheKey = `${method}:${API_BASE_URL}${path}`;
-  if (method === 'GET' && responseCache.has(cacheKey)) return responseCache.get(cacheKey);
-
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const upstreamSignal = options.signal;
   const abortUpstream = () => controller.abort();
   upstreamSignal?.addEventListener('abort', abortUpstream, { once: true });
@@ -67,11 +66,7 @@ async function requestJson(path, options = {}) {
     }
 
     if (response.status === 204) return null;
-    const payload = await response.json();
-    // GET responses are immutable for the lifetime of this page. This prevents
-    // re-renders and repeated panels from refetching the same public snapshot.
-    if (method === 'GET') responseCache.set(cacheKey, payload);
-    return payload;
+    return response.json();
   } finally {
     clearTimeout(timeout);
     upstreamSignal?.removeEventListener('abort', abortUpstream);
