@@ -1,0 +1,14 @@
+# Community Intelligence API - Python 3.12
+#
+# Deliberately minimal. Every dependency below is used by the current scaffold;
+# Census / OpenStreetMap ingestion dependencies are added when those
+# integrations land, not before.
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+SQLAlchemy==2.0.36
+httpx==0.28.1
+pytest==8.3.4
