@@ -9,6 +9,7 @@ const API_BASE_URL = configuredBaseUrl?.replace(/\/$/, '') ?? '';
 const ENDPOINTS = {
   businesses: '/api/v1/businesses',
   communityMap: '/api/v1/map/community',
+  communityProfile: '/api/v1/insights/fenton-village',
 };
 
 async function requestJson(path, options = {}) {
@@ -123,6 +124,30 @@ const formatCurrency = (value) => (
 );
 
 export function normalizeCommunityProfile(payload, requestedArea = 'Selected community') {
+  if (payload?.community_snapshot) {
+    const values = Object.fromEntries(payload.community_snapshot.map((item) => [item.key, item]));
+    const value = (key) => values[key]?.value ?? null;
+    const sources = payload.community_snapshot.flatMap((item) => item.evidence ?? []).map((evidence, index) => ({
+      id: `${evidence.organization}-${evidence.dataset}-${index}`,
+      organization: evidence.organization,
+      dataset: evidence.dataset,
+      year: evidence.dataset_year ?? '',
+      geography: payload.study_area?.name ?? requestedArea,
+      table: evidence.source_variable ?? '',
+      url: evidence.source_url,
+    }));
+    return {
+      areaName: payload.study_area?.name || requestedArea,
+      dataStatus: 'Connected ACS and OpenStreetMap data',
+      summary: payload.study_area?.method || 'Deterministic summary of stored community data.',
+      statistics: {
+        population: value('total_population'),
+        medianHouseholdIncome: value('median_household_income'),
+        businessCount: payload.business_landscape?.total_businesses ?? null,
+      },
+      sources,
+    };
+  }
   const profile = payload?.profile ?? payload;
   if (payload == null || payload?.profile === null) {
     return {
@@ -207,4 +232,9 @@ export async function getCommunityMap(options = {}) {
     return { businesses: mockBusinesses, communityGeoJson: null };
   }
   return normalizeCommunityMap(await requestJson(ENDPOINTS.communityMap, options));
+}
+
+export async function getCommunityProfile(area, options = {}) {
+  if (!isApiConfigured) return null;
+  return normalizeCommunityProfile(await requestJson(ENDPOINTS.communityProfile, options), area);
 }

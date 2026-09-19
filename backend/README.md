@@ -56,7 +56,7 @@ public datasets → ingestion → normalization → storage → service/query �
 
 | Source | Used for | Key? |
 |---|---|---|
-| [Census ACS 5-Year 2024](https://api.census.gov/data/2024/acs/acs5) | Demographic, economic, housing and commuting metrics | Optional (500 req/day unkeyed) |
+| [Census ACS 5-Year 2024](https://api.census.gov/data/2024/acs/acs5) | Demographic, economic, housing and commuting metrics | `CENSUS_API_KEY` recommended/required by current Census access policy |
 | [Census TIGERweb](https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2024/MapServer/8) (ACS 2024 vintage) | Tract boundaries as GeoJSON | No |
 | [OpenStreetMap](https://www.openstreetmap.org/copyright) via Overpass | Business and service POIs | No |
 
@@ -122,9 +122,8 @@ Base URL: `http://localhost:8000` · Swagger: `/docs` · Schema: `/openapi.json`
 | `GET` | `/api/v1/insights/fenton-village` | Deterministic district summary |
 | `POST` | `/api/v1/query` | Constrained natural-language question |
 
-Unversioned `/businesses` and `/geographies` are also served (hidden from the
-schema) because the frontend's `ENDPOINTS` table calls bare paths. They can be
-removed once it migrates.
+Unversioned `/businesses` and `/geographies` remain hidden compatibility routes
+for older clients and tests. New clients must use `/api/v1`.
 
 ### Conventions
 
@@ -284,6 +283,22 @@ python scripts/ingest_businesses.py    # 207 businesses from OpenStreetMap
 
 An empty database returns valid but empty responses — no crash, nothing to
 show. Ingest before judging, not during.
+
+### Shipping demo data
+
+`data/*.db` is intentionally ignored because it is runtime state. For a
+repeatable demo release, ship a reviewed `community.seed.db` snapshot as a
+release artifact (or bake it into the container image), then restore it before
+starting the API:
+
+```bash
+python scripts/restore_database.py path/to/community.seed.db
+```
+
+On Render/Railway-style ephemeral filesystems, use the baked snapshot or a
+persistent volume; otherwise a redeploy recreates an empty database. Verify
+the release with `GET /api/v1/areas?with_boundary_only=true` and expect
+`count: 14`, then check `/api/v1/map/community` for `area_count: 14`.
 
 ## Running tests
 

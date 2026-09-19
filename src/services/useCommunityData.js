@@ -3,6 +3,7 @@ import { fentonVillageInsights } from '../data/communityInsights';
 import { mockBusinesses } from '../data/mockBusinesses';
 import {
   getCommunityMap,
+  getCommunityProfile,
   isApiConfigured,
 } from './api';
 
@@ -13,7 +14,7 @@ const fallbackData = {
   communityGeoJson: null,
 };
 
-export function useCommunityData() {
+export function useCommunityData(area) {
   const [state, setState] = useState({
     status: isApiConfigured ? 'loading' : 'success',
     data: fallbackData,
@@ -29,14 +30,14 @@ export function useCommunityData() {
     const options = { signal: controller.signal };
     setState((current) => ({ ...current, status: 'loading', error: null, issue: null }));
 
-    getCommunityMap(options)
-      .then((communityMap) => {
+    Promise.all([getCommunityProfile(area, options), getCommunityMap(options)])
+      .then(([profile, communityMap]) => {
         if (controller.signal.aborted) return;
         setState({
           status: 'success',
           data: {
             businesses: communityMap.businesses,
-            profile: fallbackData.profile,
+            profile: { ...profile, sources: profile.sources ?? [] },
             transit: [],
             communityGeoJson: communityMap.communityGeoJson,
           },
@@ -58,7 +59,7 @@ export function useCommunityData() {
       });
 
     return () => controller.abort();
-  }, []);
+      }, [area]);
 
   return state;
 }

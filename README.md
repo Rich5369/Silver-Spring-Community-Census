@@ -15,14 +15,14 @@ The frontend is a lightweight React + Vite application. UI components live in `s
 
 Set `VITE_API_BASE_URL` to the backend origin, without a trailing slash. If it is omitted, or if a configured API request fails, the frontend safely displays its clearly labeled demo data.
 
-The endpoint names below are proposals and may be changed in the centralized `ENDPOINTS` object in `src/services/api.js` when the backend routes are finalized:
+The frontend uses the backend's versioned API contract:
 
-- `GET /businesses`
-- `GET /community-profiles/:area`
-- `GET /sources?area=:area`
-- `GET /transit`
+- `GET /api/v1/map/community`
+- `GET /api/v1/insights/fenton-village`
 
 ### Businesses Response
+
+Businesses are read from the `businesses.features` GeoJSON layer in the map response; the headline profile is adapted from the evidence-backed insights response.
 
 Return this exact envelope. `businesses` may be an empty array. Coordinates must be JSON numbers; records without a name or valid coordinates are discarded by the adapter.
 
