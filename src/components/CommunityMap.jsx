@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+// Imported here rather than in the entry module so Leaflet's stylesheet ships
+// with the map chunk instead of blocking the first paint of the hero.
+import 'leaflet/dist/leaflet.css';
 import { CircleMarker, MapContainer, Pane, Popup, TileLayer, useMap } from 'react-leaflet';
 import MapDataLayers from './MapDataLayers';
 import MapLayersControl from './MapLayersControl';
@@ -149,13 +152,20 @@ function CommunityMap({
     community: false,
     transit: false,
   });
-  const safeCommunityGeoJson = sanitizeGeoJsonFeatureCollection(communityGeoJson);
+  // Validating 14 tract polygons walks every ring of every coordinate. It ran
+  // on every render of the map - including every keystroke in the business
+  // search - and its result also feeds a useEffect below, so a fresh object
+  // each time meant repeated layer work as well.
+  const safeCommunityGeoJson = useMemo(
+    () => sanitizeGeoJsonFeatureCollection(communityGeoJson),
+    [communityGeoJson],
+  );
   const layerAvailability = {
     businesses: businessLayerAvailable || businesses.length > 0,
     community: Boolean(safeCommunityGeoJson),
     transit: hasGeoJsonData(transitGeoJson),
   };
-  const isDemoLayer = areAllDemoBusinesses(businesses);
+  const isDemoLayer = useMemo(() => areAllDemoBusinesses(businesses), [businesses]);
   const updateLayerVisibility = (layerId, isVisible) => {
     setLayerVisibility((current) => ({ ...current, [layerId]: isVisible }));
   };

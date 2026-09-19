@@ -168,6 +168,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .planning-trends-heading > p strong, .planning-trends-heading > p span { display: block; }
 .planning-trends-heading > p span { margin-top: 3px; font-size: 10px; }
 .planning-trends-intro { margin: 8px 0 16px; color: #5f7067; font-size: 12px; }
+/* Placeholders for code-split sections. They reuse the real section's box so
+   the layout does not move when the chunk arrives. */
+.section-loading { display: flex; align-items: center; justify-content: center; color: #6c776f; font-size: 12px; }
+.section-loading p { margin: 0; }
+section.planning-trends.section-loading { min-height: 232px; }
+.map-panel.section-loading { min-height: 520px; border: 1px solid #cfd9d1; border-radius: 10px; background: #fff; }
+p.section-loading { padding: 20px 0; }
 .trend-accordions { border: 1px solid #d7e0d9; border-radius: 8px; overflow: hidden; }
 .trend-accordion + .trend-accordion { border-top: 1px solid #d7e0d9; }
 .trend-accordion > button { display: flex; width: 100%; min-height: 48px; align-items: center; gap: 9px; padding: 11px 14px; border: 0; color: #294638; background: #f8faf8; font-weight: 800; text-align: left; }

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import {
   getGeoJsonAreaId,
@@ -27,10 +28,13 @@ const highlightedStyle = {
 };
 
 function CensusAreaLayer({ data, selectedAreaId = null, highlightedAreaIds = [], onAreaSelect }) {
-  const safeData = sanitizeGeoJsonFeatureCollection(data);
+  // CommunityMap already validated this collection, but the guard stays for
+  // any other caller. Memoised so it is not a second full walk of every
+  // polygon on each render.
+  const safeData = useMemo(() => sanitizeGeoJsonFeatureCollection(data), [data]);
+  const highlighted = useMemo(() => new Set(highlightedAreaIds), [highlightedAreaIds]);
   if (!safeData) return null;
 
-  const highlighted = new Set(highlightedAreaIds);
   const styleFeature = (feature) => {
     const id = getGeoJsonAreaId(feature);
     if (id === selectedAreaId) return selectedStyle;
