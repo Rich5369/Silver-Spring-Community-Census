@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from sqlalchemy import func
+
 from app.models.business import Business
 from app.repositories.base import BaseRepository
 
@@ -48,6 +50,20 @@ class BusinessRepository(BaseRepository[Business]):
         if limit is not None:
             stmt = stmt.limit(limit)
         return list(stmt.all())
+
+    def category_counts(self) -> list[tuple[str, int]]:
+        """Distinct categories present, with counts, most common first.
+
+        Aggregated in the database rather than by loading every row, so the
+        endpoint stays cheap as the dataset grows.
+        """
+        rows = (
+            self.session.query(Business.category, func.count(Business.id))
+            .group_by(Business.category)
+            .order_by(func.count(Business.id).desc(), Business.category)
+            .all()
+        )
+        return [(str(category), int(count)) for category, count in rows]
 
     def upsert(
         self,

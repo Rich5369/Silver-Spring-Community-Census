@@ -42,3 +42,27 @@ class BusinessListResponse(BaseModel):
     """The envelope the frontend expects."""
 
     businesses: list[BusinessOut] = Field(default_factory=list)
+
+
+class CategoryCount(BaseModel):
+    """One category and how many businesses carry it."""
+
+    category: str = Field(
+        description=(
+            "A value from the fixed taxonomy. Matches the vocabulary in "
+            "src/services/businessQuery.js exactly."
+        )
+    )
+    count: int
+
+
+class CategoryListResponse(BaseModel):
+    """Every category currently present, with counts.
+
+    Built from stored data rather than the full taxonomy, so a category with
+    no businesses in the study area does not appear. Use this to build filter
+    controls that cannot return an empty result.
+    """
+
+    count: int = Field(description="Number of distinct categories present.")
+    categories: list[CategoryCount] = Field(default_factory=list)
