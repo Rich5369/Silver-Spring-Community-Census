@@ -5,6 +5,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.schemas.government import GovernmentSummaryResponse
+from app.services.civic_brief_service import build_civic_priorities
 from app.services.insights_service import build_insights
 
 
@@ -40,4 +41,5 @@ def build_government_summary(session: Session) -> GovernmentSummaryResponse:
             "hospital, clinic, and public-health utilization data",
             "evictions, rents, assessments, and housing cost burden",
         ],
+        priorities=build_civic_priorities(session),
     )

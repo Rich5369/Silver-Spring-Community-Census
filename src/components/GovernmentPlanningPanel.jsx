@@ -15,6 +15,21 @@ function GovernmentPlanningPanel({ summary, trends }) {
       <p className="government-panel-intro">
         A current, evidence-backed view of community composition and the local business landscape.
       </p>
+      {summary.priorities?.length > 0 && (
+        <section className="civic-priorities" aria-labelledby="civic-priorities-title">
+          <h4 id="civic-priorities-title">Decision signals for officials</h4>
+          <p className="government-trend-note">These are screening signals, not predictions or policy recommendations.</p>
+          {summary.priorities.map((item) => (
+            <article className="civic-priority" key={item.key}>
+              <div className="government-bar-label"><strong>{item.priority}</strong><span>Evidence-backed signal</span></div>
+              <p><strong>{item.signal}</strong></p>
+              <p>{item.why_it_matters}</p>
+              <p><strong>Next step:</strong> {item.next_step}</p>
+              {item.evidence?.length > 0 && <small>{item.evidence.length} cited source{item.evidence.length === 1 ? '' : 's'}</small>}
+            </article>
+          ))}
+        </section>
+      )}
       <ul className="government-panel-list">
         {summary.available_views?.map((view) => <li key={view}>{view}</li>)}
       </ul>
