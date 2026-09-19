@@ -26,6 +26,7 @@ function QueryPanel({
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search businesses by name or category..."
             aria-describedby="business-search-help"
+            disabled={dataStatus === 'loading'}
           />
         </form>
         <span className="visually-hidden" id="business-search-help">
@@ -37,7 +38,7 @@ function QueryPanel({
         <div className="filter-summary">
           <span className="filter-label" id="business-filter-label">Filter businesses</span>
           <output className="result-count" aria-live="polite">
-            {describeResultCount(resultCount, totalCount)}
+            {dataStatus === 'loading' ? 'Loading businesses…' : describeResultCount(resultCount, totalCount)}
           </output>
         </div>
         <div className="filter-list" aria-label="Business categories">
@@ -70,13 +71,13 @@ function QueryPanel({
             className="filter-chip clear-filter"
             type="button"
             onClick={onClear}
-            disabled={activeFilter === 'all' && searchTerm.length === 0}
+            disabled={dataStatus === 'loading' || (activeFilter === 'all' && searchTerm.length === 0)}
           >
             Clear Filters
           </button>
         </div>
         <p className="data-load-status" role="status">
-          {dataStatus === 'loading' && 'Loading community data…'}
+          {dataStatus === 'loading' && 'Loading businesses… The map remains available.'}
           {dataStatus === 'error' && dataIssue === 'malformed'
             && 'Some API data was invalid — showing safe demo data.'}
           {dataStatus === 'error' && dataIssue !== 'malformed'

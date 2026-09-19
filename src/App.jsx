@@ -4,6 +4,7 @@ import AskCommunity from './components/AskCommunity';
 import OpportunityExplorer from './components/OpportunityExplorer';
 import GovernmentPlanningPanel from './components/GovernmentPlanningPanel';
 import PlanningTrends from './components/PlanningTrends';
+import HomeIntro from './components/HomeIntro';
 import { answerAreaQuestion } from './services/areaQuestion';
 import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
@@ -69,6 +70,19 @@ function App() {
     setFentonExploreKey((key) => key + 1);
   };
 
+  const scrollToExplorer = () => {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById('community-explorer')?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  };
+
+  const exploreFentonFromHome = () => {
+    exploreFentonVillage();
+    scrollToExplorer();
+  };
+
   const askQuestion = async () => {
     const submitted = question.trim();
     if (!submitted) return;
@@ -92,22 +106,24 @@ function App() {
   return (
     <div className="app-shell">
       <Header />
-      <main className="workspace">
-        <QueryPanel
-          activeFilter={activeFilter}
-          filters={filters}
-          searchTerm={searchTerm}
-          resultCount={visibleBusinesses.length}
-          totalCount={data.businesses.length}
-          onFilterChange={setActiveFilter}
-          onSearchChange={setSearchTerm}
-          onClear={clearFilters}
-          dataStatus={status}
-          dataIssue={issue}
-          usingFallback={usingFallback}
-        />
-        <div className="content-grid">
-          <MapPanel
+      <main>
+        <HomeIntro onExplore={scrollToExplorer} onExploreFenton={exploreFentonFromHome} />
+        <div className="workspace" id="community-explorer">
+          <QueryPanel
+            activeFilter={activeFilter}
+            filters={filters}
+            searchTerm={searchTerm}
+            resultCount={visibleBusinesses.length}
+            totalCount={data.businesses.length}
+            onFilterChange={setActiveFilter}
+            onSearchChange={setSearchTerm}
+            onClear={clearFilters}
+            dataStatus={status}
+            dataIssue={issue}
+            usingFallback={usingFallback}
+          />
+          <div className="content-grid">
+            <MapPanel
             areaName={selectedInsights.areaName}
             businesses={visibleBusinesses}
             totalBusinessCount={data.businesses.length}
@@ -121,8 +137,9 @@ function App() {
             onExploreFenton={exploreFentonVillage}
             exploreKey={fentonExploreKey}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
-          />
-          <AskCommunity
+            isBusinessLoading={status === 'loading'}
+            />
+            <AskCommunity
             question={question}
             onQuestionChange={setQuestion}
             onAsk={askQuestion}
@@ -131,18 +148,19 @@ function App() {
             error={queryState.error}
             areaName={selectedGeoJsonArea?.areaName ?? 'Fenton Village, Silver Spring, Maryland'}
             isAreaSelected={Boolean(selectedGeoJsonArea)}
+            />
+          </div>
+          <PlanningTrends
+            insights={selectedInsights}
+            trends={governmentTrends}
+            trendGeography={governmentSummary?.study_area?.study_area?.name}
           />
+          <details className="exploration-tools">
+            <summary>Business Opportunity Explorer and planning context</summary>
+            <OpportunityExplorer insights={data.profile} businesses={data.businesses} />
+            <GovernmentPlanningPanel summary={governmentSummary} trends={governmentTrends} />
+          </details>
         </div>
-        <PlanningTrends
-          insights={selectedInsights}
-          trends={governmentTrends}
-          trendGeography={governmentSummary?.study_area?.study_area?.name}
-        />
-        <details className="exploration-tools">
-          <summary>Business Opportunity Explorer and planning context</summary>
-          <OpportunityExplorer insights={data.profile} businesses={data.businesses} />
-          <GovernmentPlanningPanel summary={governmentSummary} trends={governmentTrends} />
-        </details>
       </main>
     </div>
   );

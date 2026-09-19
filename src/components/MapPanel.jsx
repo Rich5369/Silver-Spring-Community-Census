@@ -23,6 +23,7 @@ function MapPanel({
   onExploreFenton,
   exploreKey = 0,
   hasActiveQuery = false,
+  isBusinessLoading = false,
 }) {
   const [resetKey, setResetKey] = useState(0);
   const [view, setView] = useState('map');
@@ -31,7 +32,7 @@ function MapPanel({
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
   const emptyMessage = hasActiveQuery
     ? 'Try another category or clear the search.'
-    : 'No business records are available for this area.';
+    : 'No businesses were returned for this area.';
   const selectedBusiness = businesses.find((business) => business.id === selectedBusinessId) ?? null;
 
   // The map and the list share one filtered result set, so a business that a filter
@@ -105,7 +106,9 @@ function MapPanel({
             {isMapExpanded ? 'Collapse map' : 'Expand map'}
           </button>
         </div>
-        <p className="result-summary">{describeResultCount(businesses.length, totalBusinessCount)}</p>
+        <p className="result-summary" aria-live="polite">
+          {isBusinessLoading ? 'Loading businesses…' : describeResultCount(businesses.length, totalBusinessCount)}
+        </p>
       </div>
       {selectedBusiness && (
         <div className="selected-business-bar">
@@ -157,7 +160,7 @@ function MapPanel({
           onBusinessSelect={setSelectedBusinessId}
           onAreaSelect={onAreaSelect}
           onDefaultAreaSelect={onDefaultAreaSelect}
-          showEmptyResults={businesses.length === 0}
+          showEmptyResults={!isBusinessLoading && businesses.length === 0}
           emptyResultsMessage={emptyMessage}
           resetKey={resetKey}
           exploreKey={exploreKey}
@@ -165,13 +168,13 @@ function MapPanel({
         />
       </div>
       <div id="business-list-view" className="business-list-panel" hidden={view !== 'list'}>
-        <BusinessList
+        {isBusinessLoading ? <p className="business-loading" role="status">Loading businesses…</p> : <BusinessList
           businesses={businesses}
           evidenceSources={evidenceSources}
           selectedBusinessId={selectedBusinessId}
           onViewOnMap={viewOnMap}
           emptyMessage={emptyMessage}
-        />
+        />}
       </div>
     </section>
   );
