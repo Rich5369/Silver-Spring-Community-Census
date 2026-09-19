@@ -2,7 +2,7 @@
 
 A queryable community-intelligence map for Silver Spring, Maryland, with Fenton Village as the primary use case.
 
-## Frontend setup
+## Frontend Setup
 
 ```bash
 npm install
@@ -11,7 +11,7 @@ npm run dev
 
 The frontend is a lightweight React + Vite application. UI components live in `src/components`, temporary display content in `src/data`, API integration helpers in `src/services`, and global presentation styles in `src/styles`.
 
-## Backend integration contract
+## Backend Integration Contract
 
 Set `VITE_API_BASE_URL` to the backend origin, without a trailing slash. If it is omitted, or if a configured API request fails, the frontend safely displays its clearly labeled demo data.
 
@@ -22,7 +22,7 @@ The endpoint names below are proposals and may be changed in the centralized `EN
 - `GET /sources?area=:area`
 - `GET /transit`
 
-### Businesses response
+### Businesses Response
 
 Return this exact envelope. `businesses` may be an empty array. Coordinates must be JSON numbers; records without a name or valid coordinates are discarded by the adapter.
 
@@ -43,7 +43,7 @@ Return this exact envelope. `businesses` may be an empty array. Coordinates must
 }
 ```
 
-### Community profile response
+### Community Profile Response
 
 Return this exact envelope. Unknown numeric statistics should be `null`, not formatted strings. The frontend handles formatting and missing values.
 
