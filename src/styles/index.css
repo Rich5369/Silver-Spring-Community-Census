@@ -94,7 +94,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .clear-filter:disabled { border-color: #d8dfda; color: #8a968f; background: #f4f6f4; }
 .data-load-status { position: absolute; top: 100%; right: 0; left: 0; min-height: 14px; margin: 5px 0 0; color: #6d796f; font-size: 10px; }
 
-.content-grid { min-width: 0; border: 1px solid #cfd9d1; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px rgb(31 49 39 / 7%); overflow: hidden; overflow: clip; }
+.content-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 27%); align-items: start; min-width: 0; border: 1px solid #cfd9d1; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px rgb(31 49 39 / 7%); overflow: hidden; overflow: clip; }
+.content-grid > .ask-community { min-width: 0; margin: 0; border: 0; border-left: 1px solid #d4ddd6; border-radius: 0; padding: 20px; overflow-wrap: anywhere; }
+.content-grid .ask-community-form { flex-direction: column; }
+.content-grid .ask-community-form input { width: 100%; min-height: 46px; font-size: 16px; }
+.content-grid .ask-community-form button { min-height: 44px; }
+.content-grid .suggested-questions { display: grid; grid-template-columns: minmax(0, 1fr); }
+.content-grid .suggested-questions button { min-height: 44px; padding: 9px 12px; border-radius: 7px; text-align: left; font-size: 12px; white-space: normal; overflow-wrap: anywhere; }
+.query-context { padding: 10px 0; border-bottom: 1px solid #d4ddd6; font-size: 13px; }
+.query-context span, .query-context strong { display: block; }
+.query-context span { margin-bottom: 4px; color: #536c5f; font-size: 11px; }
+.suggestion-label { margin: 15px 0 0; font-size: 12px; font-weight: 700; }
+.query-answer p { white-space: pre-line; overflow-wrap: anywhere; }
+.exploration-tools { margin-top: 18px; }
+.exploration-tools > summary { padding: 12px; color: #2a6249; font-size: 13px; font-weight: 700; cursor: pointer; }
 .map-panel { display: flex; flex-direction: column; min-width: 0; }
 .business-map-view { display: flex; flex: 1; min-height: 560px; }
 .results-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 18px; border-bottom: 1px solid #dbe3dc; font-size: 12px; color: #465d51; }
@@ -278,9 +291,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .planned-sources li + li { margin-top: 3px; }
 .connection-status { margin: 10px 0 0; padding: 7px 8px; border-left: 3px solid #d3b765; color: #644d16; background: #fff8e1; font-weight: 700; }
 
-/* The map owns the full workspace width now that community context lives above
-   it. A viewport-relative height keeps geography central without pinning the
-   whole application to a single screen. */
+/* Keep the map's height independent of the naturally growing query sidebar. */
 @media (min-width: 901px) {
   :root { --map-height: clamp(500px, 70vh, 900px); }
   .business-map-view { flex: none; height: var(--map-height); min-height: 0; }
@@ -296,6 +307,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 
 @media (max-width: 900px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr); }
+  .content-grid > .ask-community { grid-row: 1; border-left: 0; border-bottom: 1px solid #d4ddd6; }
   .query-panel { align-items: stretch; flex-direction: column; gap: 14px; }
   .community-context-details { grid-template-columns: 1fr; }
   .community-context-details > * { grid-column: 1; }
