@@ -296,7 +296,7 @@ def test_fetch_sends_key_and_geography_parameters() -> None:
 
 
 def test_client_works_without_an_api_key() -> None:
-    """The API allows 500 requests/day unkeyed, so ingestion must not require one."""
+    """The client omits the key cleanly when the upstream permits unkeyed use."""
     seen: dict[str, str] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -310,6 +310,39 @@ def test_client_works_without_an_api_key() -> None:
     client.fetch(["B01003_001E"], COUNTY_QUERY)
 
     assert "key" not in seen
+
+
+def test_client_follows_census_redirects() -> None:
+    """The public Census endpoint may redirect to its canonical URL."""
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return httpx.Response(302, headers={"Location": str(request.url)})
+        return _ok_handler(request)
+
+    rows = _client(handler).fetch(["B01003_001E"], COUNTY_QUERY)
+
+    assert calls == 2
+    assert rows[0]["B01003_001E"] == SAMPLE_VALUES["B01003_001E"]
+
+
+def test_missing_key_redirect_has_actionable_error() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("missing_key.html"):
+            return httpx.Response(200, text="API key required")
+        return httpx.Response(302, headers={"Location": "/data/missing_key.html"})
+
+    client = CensusClient(
+        year=2024,
+        dataset="acs/acs5",
+        transport=httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(CensusApiError, match="CENSUS_API_KEY"):
+        client.fetch(["B01003_001E"], COUNTY_QUERY)
 
 
 def test_large_variable_sets_are_chunked_and_merged() -> None:

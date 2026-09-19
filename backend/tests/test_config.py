@@ -64,11 +64,19 @@ def test_census_api_key_is_masked_in_repr() -> None:
 
 
 def test_census_api_key_is_optional() -> None:
-    """The app must boot without a key; the Census API allows unkeyed use."""
+    """The app must boot without a key when serving already stored data."""
     settings = Settings(_env_file=None, census_api_key=None)
 
     assert settings.census_api_key is None
     assert settings.has_census_api_key is False
+
+
+def test_unrelated_debug_environment_variable_is_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Generic DEBUG values from local tools must not prevent API startup."""
+    monkeypatch.setenv("DEBUG", "release")
+    monkeypatch.delenv("SSCC_DEBUG", raising=False)
+
+    assert Settings(_env_file=None).debug is True
 
 
 def test_has_census_api_key_rejects_whitespace() -> None:

@@ -1,6 +1,8 @@
+import { isDemoStatus } from '../services/provenance';
+
 function SourceCard({ source = {} }) {
   const fallback = 'Not provided';
-  const isDemo = /demo|mock|illustrative/i.test(
+  const isDemo = isDemoStatus(
     `${source.organization || ''} ${source.dataset || ''} ${source.year || ''}`,
   );
   let sourceUrl = null;

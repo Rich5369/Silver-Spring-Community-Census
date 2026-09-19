@@ -1,5 +1,6 @@
 import { fentonVillageInsights } from '../data/communityInsights';
 import { mockBusinesses } from '../data/mockBusinesses';
+import { countBusinessesByCategory } from './businessQuery';
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 export const isApiConfigured = Boolean(configuredBaseUrl);
@@ -8,6 +9,7 @@ const API_BASE_URL = configuredBaseUrl?.replace(/\/$/, '') ?? '';
 // Keep finalized backend paths centralized so versioning remains explicit.
 const ENDPOINTS = {
   businesses: '/api/v1/businesses',
+  businessCategories: '/api/v1/businesses/categories',
   communityMap: '/api/v1/map/community',
 };
 
@@ -85,11 +87,36 @@ function normalizeMapBusinesses(featureCollection) {
       address: business.address,
       source: business.source,
       source_url: business.source_url,
-      dataset: 'OpenStreetMap points of interest',
+      // Prefer the dataset the backend reports; the literal is only a fallback
+      // for the map payload, which does not carry one today.
+      dataset: business.dataset || 'OpenStreetMap points of interest',
     };
   });
 
   return normalizeBusinesses({ businesses: records });
+}
+
+/**
+ * Category counts from GET /api/v1/businesses/categories.
+ *
+ * The backend builds this from stored rows, so every category listed has at
+ * least one business behind it - it is the authoritative vocabulary for filter
+ * controls, including categories the frontend has never seen before.
+ */
+export function normalizeBusinessCategories(payload) {
+  const records = Array.isArray(payload) ? payload : payload?.categories;
+  if (payload == null) return [];
+  if (!Array.isArray(records)) throw malformedResponse('business categories');
+
+  const normalized = records.flatMap((record) => {
+    const category = typeof record?.category === 'string' ? record.category.trim() : '';
+    const count = finiteNumber(record?.count);
+    if (!category || count === null || count < 0) return [];
+    return [{ category, count: Math.trunc(count) }];
+  });
+
+  if (normalized.length !== records.length) throw malformedResponse('business categories');
+  return normalized;
 }
 
 export function normalizeCommunityMap(payload) {
@@ -200,6 +227,11 @@ export function normalizeSources(payload) {
 export async function getBusinesses(options = {}) {
   if (!isApiConfigured) return mockBusinesses;
   return normalizeBusinesses(await requestJson(ENDPOINTS.businesses, options));
+}
+
+export async function getBusinessCategories(options = {}) {
+  if (!isApiConfigured) return countBusinessesByCategory(mockBusinesses);
+  return normalizeBusinessCategories(await requestJson(ENDPOINTS.businessCategories, options));
 }
 
 export async function getCommunityMap(options = {}) {

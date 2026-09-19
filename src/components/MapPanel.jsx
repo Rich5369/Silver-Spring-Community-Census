@@ -144,7 +144,7 @@ function MapPanel({
           exploreKey={exploreKey}
         />
       </div>
-      <div id="business-list-view" hidden={view !== 'list'}>
+      <div id="business-list-view" className="business-list-panel" hidden={view !== 'list'}>
         <BusinessList
           businesses={businesses}
           evidenceSources={evidenceSources}

@@ -6,116 +6,50 @@ A queryable community-intelligence map for Silver Spring, Maryland, with Fenton 
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 The frontend is a lightweight React + Vite application. UI components live in `src/components`, temporary display content in `src/data`, API integration helpers in `src/services`, and global presentation styles in `src/styles`.
 
-## Backend Integration Contract
+## Run the Full Application Locally
 
-Set `VITE_API_BASE_URL` to the backend origin, without a trailing slash. If it is omitted, or if a configured API request fails, the frontend safely displays its clearly labeled demo data.
+The backend requires Python 3.12. From a second terminal:
 
-The endpoint names below are proposals and may be changed in the centralized `ENDPOINTS` object in `src/services/api.js` when the backend routes are finalized:
-
-- `GET /businesses`
-- `GET /community-profiles/:area`
-- `GET /sources?area=:area`
-- `GET /transit`
-
-### Businesses Response
-
-Return this exact envelope. `businesses` may be an empty array. Coordinates must be JSON numbers; records without a name or valid coordinates are discarded by the adapter.
-
-```json
-{
-  "businesses": [
-    {
-      "id": 1,
-      "name": "Example Business",
-      "category": "Restaurant",
-      "latitude": 38.9921,
-      "longitude": -77.0242,
-      "address": "123 Example Street, Silver Spring, MD",
-      "source": "Organization or dataset name",
-      "sourceIds": ["business-directory-2026"]
-    }
-  ]
-}
+```bash
+cd backend
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m scripts.init_db
+uvicorn app.main:app --reload --port 8000
 ```
 
-### Community Profile Response
+The Census API key is not needed to serve already ingested SQLite data. A fresh checkout has an empty database; follow the ingestion instructions in [`backend/README.md`](backend/README.md) if no shared database file was provided.
 
-Return this exact envelope. Unknown numeric statistics should be `null`, not formatted strings. The frontend handles formatting and missing values.
+Set `VITE_API_BASE_URL=/` in `.env.local`. The browser requests `/api/v1/map/community` from the frontend's own origin; Vite forwards `/api` to `http://127.0.0.1:8000`. This also works when port 5173 is forwarded from a Codespace. Restart Vite after changing environment variables. The response provides stored business points and any available Census-area polygons, including metric evidence. If the environment variable is omitted or the API request fails, the frontend falls back to clearly labeled demo data.
 
-```json
-{
-  "profile": {
-    "areaName": "Fenton Village",
-    "summary": "Short, plain-language description of the selected area.",
-    "dataStatus": "Provisional data",
-    "statistics": {
-      "population": 8200,
-      "medianHouseholdIncome": 84000,
-      "language": {
-        "label": "Multilingual households",
-        "value": 38,
-        "unit": "percent"
-      },
-      "businessCount": 14,
-      "restaurantCount": 2,
-      "retailCount": 2
-    },
-    "statisticSources": {
-      "population": ["acs-dp05-2024"],
-      "income": ["acs-s1901-2024"],
-      "language": ["acs-s1601-2024"],
-      "businesses": ["business-directory-2026"],
-      "restaurants": ["business-directory-2026"],
-      "retail": ["business-directory-2026"]
-    }
-  }
-}
+Open port 5173 to use the map. Port 8000 opens the backend API documentation. In a Codespace, open the forwarded port 5173 from the editor's Ports tab.
+
+Verify the services at:
+
+- Frontend: <http://localhost:5173>
+- API health: <http://localhost:8000/health>
+- API documentation: <http://localhost:8000/docs>
+
+## Verify the Data Pipeline
+
+```bash
+npm run verify:data          # checks against http://127.0.0.1:8000
+API=http://localhost:8000 npm run verify:data
 ```
 
-Sources are requested separately and use this envelope:
+Checks that the frontend consumes backend data correctly: that every business
+record normalizes, that the insights panel's counts match the map, that no
+category is unreachable through the filter chips, and that the demo fallback
+stays clearly labeled.
 
-```json
-{
-  "sources": [
-    {
-      "id": "acs-s1901-2024",
-      "organization": "",
-      "dataset": "",
-      "year": "",
-      "geography": "",
-      "table": "",
-      "url": ""
-    }
-  ]
-}
-```
-
-### Community-area GeoJSON
-
-No boundary dataset is bundled with the frontend. When real geographic data is available, pass a standard GeoJSON `FeatureCollection` to the map's `communityGeoJson` input. Feature properties may contain available values and source metadata; `null` values display as `Data unavailable` rather than zero or an estimate.
-
-```json
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "id": "stable-area-id",
-      "properties": {
-        "areaName": "",
-        "population": null,
-        "medianIncome": null,
-        "source": null
-      },
-      "geometry": null
-    }
-  ]
-}
-```
-
-`source` may be `null`, one source object, or an array of source objects using the source fields documented above. Real features must include valid GeoJSON geometry before the layer is enabled.
+It also exercises the Census path using the tract shape documented in
+[`backend/README.md`](backend/README.md), so the day Census ingestion lands this
+command reports whether the frontend will render it. The live section is skipped
+when the API is not running.
