@@ -76,14 +76,15 @@ centralized in [`app/integrations/census/variables.py`](app/integrations/census/
 | Population | `B01003_001E` | Market size |
 | Median household income | `B19013_001E` | Price point (2024 dollars) |
 | Median age | `B01002_001E` | Product mix |
-| Young adults 20–34 | `B01001_008–012E`, `_032–036E` | Evening and weekend trade |
+| Young adults 18–34 | `B01001_007–012E`, `_031–036E` | Evening and weekend trade |
 | Housing tenure | `B25003_001/002/003E` | Renters churn; owners stay |
 | Commute mode | `B08301_001/003/004/010/018/019/021E` | **Foot traffic past the door** |
 | Educational attainment | `B15003_001E`, `_022–025E` | Spending profile |
 | Household language | `C16002_001E`, `_002E` | Signage and staffing languages |
 
-31 variables → **24 stored metrics** per geography, including derived shares.
-Age needs ten cells because ACS splits age by sex; `B15003` and `C16002` bases
+33 variables → **24 stored metrics** per geography, including derived shares.
+Age needs twelve cells because ACS splits age by sex and brackets 18–19, 20,
+21, 22–24, 25–29 and 30–34 separately; `B15003` and `C16002` bases
 are stored separately so aggregate shares use the correct denominator.
 
 ## Evidence and provenance strategy
