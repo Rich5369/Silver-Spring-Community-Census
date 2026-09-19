@@ -3,13 +3,14 @@ import ComparisonPanel from './ComparisonPanel';
 import StatCard from './StatCard';
 import AboutData from './AboutData';
 import { fentonVillageInsights } from '../data/communityInsights';
+import { isDemoStatus } from '../services/provenance';
 import OpportunityExplorer from './OpportunityExplorer';
 
 function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [], businesses = [] }) {
   const selectedInsights = insights ?? fentonVillageInsights;
   const stats = Array.isArray(selectedInsights.stats) ? selectedInsights.stats : [];
   const sources = Array.isArray(selectedInsights.sources) ? selectedInsights.sources : [];
-  const isDemo = /demo|mock|illustrative/i.test(selectedInsights.dataStatus || '');
+  const isDemo = isDemoStatus(selectedInsights.dataStatus);
 
   return (
     <aside className="insights-panel" aria-labelledby="insights-title">

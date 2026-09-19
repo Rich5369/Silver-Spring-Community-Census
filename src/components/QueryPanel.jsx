@@ -1,7 +1,8 @@
-import { businessFilters, describeResultCount } from '../services/businessQuery';
+import { describeResultCount } from '../services/businessQuery';
 
 function QueryPanel({
   activeFilter,
+  filters = [],
   searchTerm,
   resultCount,
   totalCount = 0,
@@ -40,8 +41,12 @@ function QueryPanel({
           </output>
         </div>
         <div className="filter-list" aria-label="Business categories">
-          {businessFilters.map((filter) => {
+          {filters.map((filter) => {
             const isActive = activeFilter === filter.id;
+            const hasCount = Number.isFinite(filter.count);
+            // A chip that cannot return anything is disabled rather than hidden,
+            // so the set of categories on screen stays stable while searching.
+            const isEmpty = hasCount && filter.count === 0;
 
             return (
               <button
@@ -49,10 +54,15 @@ function QueryPanel({
                 type="button"
                 key={filter.id}
                 aria-pressed={isActive}
+                disabled={isEmpty && !isActive}
+                aria-label={hasCount
+                  ? `${filter.label}, ${filter.count} ${filter.count === 1 ? 'business' : 'businesses'}`
+                  : filter.label}
                 onClick={() => onFilterChange(filter.id)}
               >
                 {isActive && <span className="active-check" aria-hidden="true">✓</span>}
                 {filter.label}
+                {hasCount && <span className="filter-chip-count" aria-hidden="true">{filter.count}</span>}
               </button>
             );
           })}

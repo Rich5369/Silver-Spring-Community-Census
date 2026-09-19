@@ -1,7 +1,8 @@
+import { isDemoBusiness } from '../services/provenance';
+
 export default function BusinessStatus({ business, sources = [] }) {
-  const isDemo = /demo|mock|illustrative/i.test(
-    `${business.source || ''} ${sources.map((source) => `${source.organization} ${source.dataset}`).join(' ')}`,
-  );
+  const isDemo = isDemoBusiness(business, sources);
+
   return (
     <p className={isDemo ? 'business-status demo' : 'business-status'}>
       {/* The warning symbol keeps the demo label readable without relying on the yellow tint. */}

@@ -161,3 +161,58 @@ export function normalizeGeoJsonArea(feature) {
     sources,
   };
 }
+
+// --- Locating an area by coordinate -----------------------------------------
+// Used to pick the Census tract that contains Fenton Village so the default
+// community profile is a real tract rather than a demo placeholder. GeoJSON
+// rings are [longitude, latitude] per RFC 7946 - the reverse of Leaflet.
+
+function isPointInRing(longitude, latitude, ring) {
+  let inside = false;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    const straddlesRay = (yi > latitude) !== (yj > latitude);
+    if (!straddlesRay) continue;
+    // x coordinate where edge j->i crosses the horizontal ray at `latitude`.
+    const crossingLongitude = ((xj - xi) * (latitude - yi)) / (yj - yi) + xi;
+    if (longitude < crossingLongitude) inside = !inside;
+  }
+
+  return inside;
+}
+
+function isPointInPolygonCoordinates(longitude, latitude, coordinates) {
+  if (!isPolygonCoordinates(coordinates)) return false;
+  const [exterior, ...holes] = coordinates;
+  if (!isPointInRing(longitude, latitude, exterior)) return false;
+  // A point inside a hole is outside the polygon.
+  return !holes.some((hole) => isPointInRing(longitude, latitude, hole));
+}
+
+/**
+ * Find the first sanitized feature whose polygon contains `position`.
+ *
+ * @param {object|null} collection GeoJSON FeatureCollection from the API.
+ * @param {[number, number]} position Leaflet-ordered [latitude, longitude].
+ * @returns {object|null} The containing feature, or null when none matches.
+ */
+export function findAreaFeatureContainingPoint(collection, position) {
+  const safeCollection = sanitizeGeoJsonFeatureCollection(collection);
+  if (!safeCollection || !Array.isArray(position) || position.length < 2) return null;
+
+  const latitude = Number(position[0]);
+  const longitude = Number(position[1]);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  return safeCollection.features.find((feature) => {
+    const geometry = feature.geometry;
+    if (geometry.type === 'Polygon') {
+      return isPointInPolygonCoordinates(longitude, latitude, geometry.coordinates);
+    }
+    return geometry.coordinates.some(
+      (polygon) => isPointInPolygonCoordinates(longitude, latitude, polygon),
+    );
+  }) ?? null;
+}

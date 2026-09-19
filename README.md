@@ -119,3 +119,15 @@ No boundary dataset is bundled with the frontend. When real geographic data is a
 ```
 
 `source` may be `null`, one source object, or an array of source objects using the source fields documented above. Real features must include valid GeoJSON geometry before the layer is enabled.
+
+## Verify the Data Pipeline
+
+```bash
+npm run verify:data          # checks against http://127.0.0.1:8000
+API=http://localhost:8000 npm run verify:data
+```
+
+Checks that the frontend consumes backend data correctly: that every business
+record normalizes, that the insights panel's counts match the map, that no
+category is unreachable through the filter chips, and that the demo fallback
+stays clearly labeled. The live section is skipped when the API is not running.
