@@ -1,4 +1,4 @@
-function GovernmentPlanningPanel({ summary, trends }) {
+function GovernmentPlanningPanel({ summary, trends, serviceRequests }) {
   if (!summary) return null;
 
   const studyArea = summary.study_area ?? {};
@@ -98,6 +98,21 @@ function GovernmentPlanningPanel({ summary, trends }) {
             );
           })}
           <p className="government-trend-note">ACS 5-year estimates across the project’s 14-tract study area; not a causal displacement measure.</p>
+        </section>
+      )}
+      {serviceRequests?.series?.length > 1 && (
+        <section className="government-trends" aria-labelledby="service-request-title">
+          <h4 id="service-request-title">Official service-request trend</h4>
+          <div className="trend-series">
+            <div className="government-bar-label"><span>MC311 requests · ZIP 20910</span><strong>County source</strong></div>
+            <div className="trend-points">
+              {serviceRequests.series.map((point) => {
+                const max = Math.max(...serviceRequests.series.map((item) => item.requests), 1);
+                return <div className="trend-point" key={point.year}><span style={{ height: `${12 + (point.requests / max) * 68}px` }} title={`${point.year}: ${point.requests.toLocaleString()} requests`} /><small>{point.year}</small></div>;
+              })}
+            </div>
+          </div>
+          <p className="government-trend-note">Official Montgomery County MC311 volume. ZIP 20910 is broader than Fenton Village and does not prove unmet need.</p>
         </section>
       )}
       <p className="government-trend-note">

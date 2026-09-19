@@ -20,6 +20,21 @@ class CivicPriority(BaseModel):
     limitations: list[str] = Field(default_factory=list)
 
 
+class ServiceRequestTrend(BaseModel):
+    """Annual official 311 volume for the study-area ZIP code."""
+
+    year: int
+    requests: int
+
+
+class ServiceRequestResponse(BaseModel):
+    dataset: str
+    geography: str
+    series: list[ServiceRequestTrend] = Field(default_factory=list)
+    evidence: list[Evidence] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+
+
 class GovernmentSummaryResponse(BaseModel):
     """Evidence-backed context for local government and civic planning."""
 
