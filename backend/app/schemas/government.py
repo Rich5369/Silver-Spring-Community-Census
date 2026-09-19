@@ -14,4 +14,5 @@ class GovernmentSummaryResponse(BaseModel):
     study_area: InsightsResponse
     available_views: list[str] = Field(default_factory=list)
     unavailable_views: list[str] = Field(default_factory=list)
-
+    recommended_uses: list[str] = Field(default_factory=list)
+    data_gaps: list[str] = Field(default_factory=list)

@@ -80,6 +80,10 @@ _CATEGORY_SYNONYMS: tuple[tuple[str, str], ...] = (
 # --- Intent keywords --------------------------------------------------------
 # Ordered most specific to most general; the first intent with a match wins.
 _INTENT_KEYWORDS: tuple[tuple[Intent, tuple[str, ...]], ...] = (
+    (Intent.HEALTH_ACCESS, ("hospital", "hospitals", "health care", "healthcare access", "clinic", "medical access", "declining health")),
+    (Intent.BUSINESS_HEALTH, ("business failure", "businesses failing", "businesses declining", "business decline", "vacancies", "store closures", "business health")),
+    (Intent.POLICY_SUPPORT, ("policy should", "policy implementation", "what should the council", "what should the mayor", "priority for the city", "policy priority")),
+    (Intent.COMMUNITY_SUPPORT, ("city support", "support this community", "support the community", "support residents", "community needs", "community services", "where should the city invest", "ways of supporting")),
     (Intent.DISPLACEMENT, ("displacement", "gentrification", "being pushed out", "housing pressure", "affordability")),
     (Intent.TRENDS, ("trend", "trends", "over time", "changed", "change over", "historical")),
     (Intent.DIVERSITY, ("diversity", "diverse", "languages", "multilingual", "representation", "community composition")),

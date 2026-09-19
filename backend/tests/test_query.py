@@ -64,6 +64,10 @@ def _ask(client: TestClient, question: str) -> dict:
         ("What are the diversity indicators?", Intent.DIVERSITY),
         ("Are there signs of displacement?", Intent.DISPLACEMENT),
         ("What should city planners know?", Intent.GOVERNMENT_OVERVIEW),
+        ("What policy should the council prioritize?", Intent.POLICY_SUPPORT),
+        ("How can the city support this community?", Intent.COMMUNITY_SUPPORT),
+        ("Are local businesses declining?", Intent.BUSINESS_HEALTH),
+        ("Is access to health care declining?", Intent.HEALTH_ACCESS),
     ],
 )
 def test_rule_based_intents(question: str, expected: Intent) -> None:

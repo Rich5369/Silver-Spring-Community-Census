@@ -41,6 +41,10 @@ class Intent(str, Enum):
     TRENDS = "trends"
     DIVERSITY = "diversity"
     DISPLACEMENT = "displacement"
+    POLICY_SUPPORT = "policy_support"
+    COMMUNITY_SUPPORT = "community_support"
+    BUSINESS_HEALTH = "business_health"
+    HEALTH_ACCESS = "health_access"
 
 
 #: The only geography the MVP has data for.
@@ -62,6 +66,10 @@ SUGGESTED_QUESTIONS: tuple[str, ...] = (
     "How has the community changed over time?",
     "What are the diversity indicators?",
     "Are there signs of housing displacement?",
+    "What policy should the council prioritize?",
+    "How can the city support this community?",
+    "Are local businesses declining?",
+    "Is access to health care declining?",
 )
 
 
