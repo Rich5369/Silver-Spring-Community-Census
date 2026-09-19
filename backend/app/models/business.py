@@ -67,6 +67,13 @@ class Business(Base):
 
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    #: The upstream tags this record was classified from, as JSON, plus the
+    #: single ``key=value`` that decided the category. Kept as evidence: our
+    #: taxonomy is a lossy mapping of a far richer tag vocabulary, and
+    #: without the original a surprising category is untraceable.
+    source_tags: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_tag: Mapped[str | None] = mapped_column(String(128), nullable=True)
+
     #: Optional link to the area this place falls within, set during
     #: ingestion. Nullable because a place can be ingested before the
     #: geography it belongs to is resolved.
