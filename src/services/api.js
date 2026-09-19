@@ -145,6 +145,12 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
         medianHouseholdIncome: value('median_household_income'),
         businessCount: payload.business_landscape?.total_businesses ?? null,
       },
+      opportunityMetrics: Object.fromEntries(
+        ['young_adult_share', 'commute_active_share', 'renter_share'].flatMap((key) => {
+          const item = values[key];
+          return item?.available ? [[key, { label: item.label, value: item.value, unit: item.unit }]] : [];
+        }),
+      ),
       sources,
     };
   }
