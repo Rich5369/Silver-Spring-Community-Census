@@ -30,3 +30,33 @@ export function buildLinearProjection(points, { nonNegative = true } = {}) {
   return { historical, projected, status: 'available', method: 'Ordinary least-squares linear regression' };
 }
 
+
+/**
+ * Project a non-additive metric reported as a range across tracts.
+ *
+ * The low and high edges are fitted independently, so a widening or narrowing
+ * spread is preserved rather than averaged away. If either edge fails its
+ * stability checks the whole range is withheld: half a projected band would
+ * imply a confidence the data does not support.
+ */
+export function buildRangeProjection(points, options = {}) {
+  const edges = ['low', 'high'].map((edge) => buildLinearProjection(
+    (points ?? []).map((point) => ({ year: point?.year, value: point?.[edge] })),
+    options,
+  ));
+  const [low, high] = edges;
+  const years = low.historical.map(({ year }) => year);
+  const aligned = years.length === high.historical.length
+    && years.every((year, index) => high.historical[index].year === year);
+  const historical = aligned
+    ? years.map((year, index) => ({ year, low: low.historical[index].value, high: high.historical[index].value }))
+    : [];
+  if (!aligned) return { historical, projected: [], status: 'insufficient' };
+  const status = edges.every((edge) => edge.status === 'available')
+    ? 'available'
+    : (edges.find((edge) => edge.status !== 'available')?.status ?? 'unstable');
+  const projected = status === 'available'
+    ? low.projected.map((point, index) => ({ year: point.year, low: point.value, high: high.projected[index].value }))
+    : [];
+  return { historical, projected, status, method: low.method };
+}

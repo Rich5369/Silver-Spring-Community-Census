@@ -143,6 +143,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .trend-legend span { display: flex; align-items: center; gap: 6px; }
 .trend-legend i { width: 10px; height: 10px; border-radius: 50%; background: #286b4c; }
 .trend-legend i.projected-dot { border: 2px solid #915735; background: #fff; }
+.trend-legend i.band-swatch { border-radius: 2px; background: rgb(40 107 76 / 16%); }
+.trend-band { fill: rgb(40 107 76 / 13%); stroke: none; }
+.trend-evidence-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; padding: 0; list-style: none; }
+.trend-evidence-links a { color: #246247; font-size: 11px; font-weight: 700; }
 .trend-warning, .trend-note { color: #6c776f; font-size: 11px; }
 .trend-table-wrap { margin-top: 14px; overflow-x: auto; }
 .trend-table-wrap table { width: 100%; border-collapse: collapse; font-size: 11px; }
