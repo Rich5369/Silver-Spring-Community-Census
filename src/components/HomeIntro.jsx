@@ -38,13 +38,6 @@ export default function HomeIntro({ onExplore, onViewTrends }) {
           ))}
         </div>
       </div>
-      <div className="hero-instrument" aria-hidden="true">
-        <div className="instrument-orbit orbit-one" />
-        <div className="instrument-orbit orbit-two" />
-        <div className="instrument-core"><span>SS / 01</span><small>civic signal</small></div>
-        <i className="instrument-point point-one" /><i className="instrument-point point-two" /><i className="instrument-point point-three" />
-        <span className="instrument-caption">PUBLIC EVIDENCE / 2026</span>
-      </div>
     </section>
   );
 }
