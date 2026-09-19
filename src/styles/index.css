@@ -8,8 +8,12 @@
 
 * { box-sizing: border-box; }
 
-body { margin: 0; min-width: 0; min-height: 100vh; overflow-x: hidden; }
-#root { min-width: 0; overflow-x: hidden; }
+/* overflow-x is declared twice on purpose: `clip` guards against sideways
+   overflow exactly as `hidden` does, but without making these elements scroll
+   containers - which is what would stop the sticky map panel from sticking.
+   Browsers that do not understand `clip` drop that line and keep `hidden`. */
+body { margin: 0; min-width: 0; min-height: 100vh; overflow-x: hidden; overflow-x: clip; }
+#root { min-width: 0; overflow-x: hidden; overflow-x: clip; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled, input:disabled, select:disabled { cursor: not-allowed; }
@@ -89,7 +93,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .clear-filter:disabled { border-color: #d8dfda; color: #8a968f; background: #f4f6f4; }
 .data-load-status { position: absolute; top: 100%; right: 0; left: 0; min-height: 14px; margin: 5px 0 0; color: #6d796f; font-size: 10px; }
 
-.content-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(320px, 3fr); min-height: calc(100vh - 226px); border: 1px solid #cfd9d1; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px rgb(31 49 39 / 7%); overflow: hidden; }
+.content-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(320px, 3fr); min-height: calc(100vh - 226px); border: 1px solid #cfd9d1; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px rgb(31 49 39 / 7%); overflow: hidden; overflow: clip; }
 .map-panel { display: flex; flex-direction: column; min-width: 0; }
 .business-map-view { display: flex; flex: 1; min-height: 560px; }
 .results-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 18px; border-bottom: 1px solid #dbe3dc; font-size: 12px; color: #465d51; }
@@ -244,26 +248,53 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .planned-sources li + li { margin-top: 3px; }
 .connection-status { margin: 10px 0 0; padding: 7px 8px; border-left: 3px solid #d3b765; color: #644d16; background: #fff8e1; font-weight: 700; }
 
-/* Laptop and desktop: the workspace is exactly one screen tall, so the map and
-   its legend are readable without scrolling. Sizing comes from the flex chain
-   rather than a pixel constant, which would drift whenever the filter chips
-   wrap to another line. The insights column scrolls inside itself instead of
-   stretching the row - that stretch is what pushed the legend off-screen. */
+/* Laptop and desktop: one document, one scrollbar. The page is an ordinary
+   scrolling document - the shell is not pinned to 100vh - so the insights
+   column is simply as tall as its content and grows the page when that content
+   grows. Nothing clips it and nothing scrolls inside it.
+
+   That means the map can no longer take its height from leftover flex space,
+   because there is no longer a fixed-height container to have any. It gets an
+   explicit share of the viewport instead, which is both steadier (no drift when
+   the filter chips wrap to another line) and taller on short laptops, where the
+   old one-screen budget had nothing left to give it. */
 @media (min-width: 901px) {
-  /* A definite height, not min-height: flex only has free space to hand down
-     when the container's size is resolved independently of its content. With
-     min-height the tallest cell still dictated the row and nothing shrank. */
-  .app-shell { display: flex; flex-direction: column; height: 100vh; }
-  .workspace { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-  .content-grid { flex: 1; min-height: 0; }
-  .map-panel, .insights-panel { min-height: 0; }
-  .insights-panel { overflow-y: auto; }
-  /* Below this the map is too small to be worth keeping on screen; let the page
-     scroll instead of squashing it. */
-  .business-map-view { flex: 1; min-height: 300px; }
+  /* Shared by the map and the list so switching views does not move the page. */
+  :root { --map-height: clamp(420px, 68vh, 1100px); }
+  /* The insights column defines the row height. The map keeps its own height at
+     the top of that row rather than being stretched to match, which is what
+     would otherwise turn a long insights column into a viewport-high map.
+     Sticky then keeps it on screen while the taller column scrolls past, so the
+     map is still there to read the insights against - and the leftover space in
+     this column never becomes a screen-sized blank. */
+  .map-panel { align-self: start; position: sticky; top: 12px; }
+  /* min-height: 0 clears the mobile floor, which would otherwise win over the
+     height above and pull the map off the viewport-share it is meant to keep. */
+  .business-map-view { flex: none; height: var(--map-height); min-height: 0; }
   .map-canvas, .leaflet-map { min-height: 0; }
-  .business-list-panel { display: flex; flex: 1; min-height: 0; }
+  /* The list keeps its own scroll inside the same footprint as the map: this
+     panel holds every matching business, and letting it size to its content
+     would stretch the page by tens of thousands of pixels. */
+  .business-list-panel { display: flex; flex: none; height: var(--map-height); }
   .business-list-view { flex: 1; max-height: none; }
+}
+
+/* Large desktop: the map is the product, so it takes roughly three quarters of
+   the workspace. The insights column is sized as a percentage rather than an fr
+   share so the 22-28% split holds at any width above the breakpoint, with a
+   pixel floor so its two-column stat grid never collapses. */
+@media (min-width: 1200px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, 27%); }
+  /* Less chrome above the map, so more of the first screen is the map itself. */
+  .workspace { padding-top: 14px; padding-bottom: 18px; }
+  /* Kept wider than .data-load-status, which is absolutely positioned into this
+     gap and would otherwise overlap the grid below it. */
+  .query-panel { margin-bottom: 20px; }
+  .map-toolbar { height: 68px; padding-top: 12px; padding-bottom: 12px; }
+}
+
+@media (min-width: 1600px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, 24%); }
 }
 
 @media (max-width: 900px) {

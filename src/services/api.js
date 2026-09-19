@@ -89,9 +89,12 @@ function normalizeMapBusinesses(featureCollection) {
       address: business.address,
       source: business.source,
       source_url: business.source_url,
-      // Prefer the dataset the backend reports; the literal is only a fallback
-      // for the map payload, which does not carry one today.
-      dataset: business.dataset || 'OpenStreetMap points of interest',
+      // Whatever dataset the map payload carries, if it ever carries one. It
+      // does not today, and naming a provider here would put an invented string
+      // in front of the user as provenance. normalizeBusinesses falls back to a
+      // neutral "Business record" instead. GET /api/v1/businesses reports the
+      // real dataset, which is why that endpoint feeds the business layer.
+      dataset: business.dataset,
     };
   });
 
