@@ -51,6 +51,7 @@ export function normalizeBusinesses(payload) {
       longitude,
       address: String(business.address || 'Address not provided'),
       source: String(business.source || 'Source not provided'),
+      sourceIds: Array.isArray(business.sourceIds) ? business.sourceIds.map(String) : [],
     }];
   });
 }
@@ -83,7 +84,14 @@ export function normalizeCommunityProfile(payload, requestedArea = 'Selected com
 
   const statistics = profile.statistics ?? {};
   const language = statistics.language ?? {};
-  const stat = (id, label, value) => ({ id, label, value, note: 'Backend response' });
+  const statisticSources = profile.statisticSources ?? {};
+  const stat = (id, label, value) => ({
+    id,
+    label,
+    value,
+    note: 'Backend response',
+    sourceIds: Array.isArray(statisticSources[id]) ? statisticSources[id].map(String) : [],
+  });
   const languageValue = finiteNumber(language.value);
 
   return {
@@ -113,6 +121,7 @@ export function normalizeSources(payload) {
   if (!Array.isArray(records)) return [];
 
   return records.map((source) => ({
+    id: source?.id == null ? '' : String(source.id),
     organization: String(source?.organization || ''),
     dataset: String(source?.dataset || ''),
     year: String(source?.year || ''),

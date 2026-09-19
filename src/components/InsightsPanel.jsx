@@ -1,4 +1,4 @@
-import SourceCard from './SourceCard';
+import EvidenceDetails from './EvidenceDetails';
 import StatCard from './StatCard';
 import { fentonVillageInsights } from '../data/communityInsights';
 
@@ -23,7 +23,11 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
         <h3 id="community-stats-title">Community snapshot</h3>
         <div className="stat-grid">
           {stats.map((stat, index) => (
-            <StatCard key={stat.id || `stat-${index}`} {...stat} />
+            <StatCard
+              key={stat.id || `stat-${index}`}
+              {...stat}
+              sources={sources.filter((source) => stat.sourceIds?.includes(source.id))}
+            />
           ))}
           {stats.length === 0 && <p className="empty-data-message">No statistics available.</p>}
         </div>
@@ -40,10 +44,7 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
             : 'Source records identify the organization, dataset, year, geography, table, and original link.'}
         </p>
         <div className="source-list">
-          {sources.map((source, index) => (
-            <SourceCard key={`${source.organization || 'source'}-${source.dataset || index}`} source={source} />
-          ))}
-          {sources.length === 0 && <p className="empty-data-message">No sources available.</p>}
+          <EvidenceDetails sources={sources} label="Browse all evidence" />
         </div>
       </section>
     </aside>

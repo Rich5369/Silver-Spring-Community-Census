@@ -37,6 +37,7 @@ function App() {
         <div className="content-grid">
           <MapPanel
             businesses={visibleBusinesses}
+            evidenceSources={data.profile.sources}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
           />
           <InsightsPanel insights={data.profile} />

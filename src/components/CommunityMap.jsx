@@ -27,10 +27,15 @@ function CommunityMap({
   zoom,
   locations = [],
   businesses = [],
+  evidenceSources = [],
   showEmptyResults = false,
   emptyResultsMessage = 'No business records are available.',
   resetKey = 0,
 }) {
+  const isDemoLayer = businesses.length > 0 && businesses.every((business) => (
+    /demo|mock|illustrative/i.test(business.source || '')
+  ));
+
   return (
     <div className="map-canvas">
       <MapContainer
@@ -57,12 +62,14 @@ function CommunityMap({
             </Popup>
           </CircleMarker>
         ))}
-        <BusinessLayer businesses={businesses} />
+        <BusinessLayer businesses={businesses} evidenceSources={evidenceSources} />
         <MapController center={center} zoom={zoom} resetKey={resetKey} />
       </MapContainer>
       {businesses.length > 0 && (
         <div className="mock-layer-notice" role="note">
-          Demo layer: {businesses.length} mock businesses — not verified data
+          {isDemoLayer
+            ? `Demo layer: ${businesses.length} mock businesses — not verified data`
+            : `${businesses.length} businesses shown`}
         </div>
       )}
       {showEmptyResults && (
