@@ -91,6 +91,16 @@ The frontend uses the backend's versioned API contract:
 
 - `GET /api/v1/map/community`
 - `GET /api/v1/insights/fenton-village`
+- `GET /api/v1/government/summary`
+
+### Government planning summary
+
+The civic planning endpoint returns the evidence-backed study-area snapshot,
+including population, housing tenure, age and income ranges, community
+composition, mapped business mix, tract coverage, and source evidence. It also
+lists views that are intentionally unavailable until historical data is
+ingested, such as year-over-year trends and displacement. The API does not
+infer causation or produce a policy score.
 
 ### Businesses Response
 
