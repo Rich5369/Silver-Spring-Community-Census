@@ -82,6 +82,11 @@ _INTENT_METRICS: dict[Intent, tuple[str, ...]] = {
     ),
     Intent.BUSINESS_CATEGORIES: (),
     Intent.NEARBY_BUSINESSES: (),
+    Intent.BUSINESS_OPPORTUNITY: (
+        "young_adult_share",
+        "commute_active_share",
+        "renter_share",
+    ),
 }
 
 _INTENT_RANGES: dict[Intent, tuple[str, ...]] = {
@@ -138,6 +143,7 @@ _INTENT_OBSERVATIONS: dict[Intent, tuple[str, ...]] = {
         "business_category_spread",
     ),
     Intent.NEARBY_BUSINESSES: (),
+    Intent.BUSINESS_OPPORTUNITY: (),
 }
 
 
@@ -171,6 +177,24 @@ def _business_answer(category: str | None, count: int, total: int) -> str:
     )
 
 
+def _opportunity_answer(insights: InsightsResponse) -> str:
+    """Describe observable market context without predicting success."""
+    categories = insights.business_landscape.categories
+    if not categories:
+        return NO_DATA_ANSWER
+    leaders = ", ".join(
+        f"{item.category} ({item.count})" for item in categories[:3]
+    )
+    return (
+        "The data cannot identify which business will be successful or recommend "
+        "an opening. It can show current market context: the most represented "
+        f"categories are {leaders} among "
+        f"{insights.business_landscape.total_businesses} mapped businesses. "
+        "Use these observed counts and the community indicators below to form "
+        "a hypothesis, then validate it with local research."
+    )
+
+
 def unsupported_response(question: str) -> QueryResponse:
     """The answer when a question cannot be parsed."""
     return QueryResponse(
@@ -196,12 +220,19 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
     businesses = []
     business_features = None
 
-    if intent in (Intent.NEARBY_BUSINESSES, Intent.BUSINESS_CATEGORIES):
+    if intent in (Intent.NEARBY_BUSINESSES, Intent.BUSINESS_CATEGORIES, Intent.BUSINESS_OPPORTUNITY):
         limitations.append(BUSINESS_LIMITATION)
     if intent in (Intent.INCOME, Intent.AGE, Intent.COMMUNITY_OVERVIEW):
         limitations.append(MEDIAN_LIMITATION)
 
-    if intent is Intent.NEARBY_BUSINESSES:
+    if intent is Intent.BUSINESS_OPPORTUNITY:
+        categories = insights.business_landscape.categories
+        answer = _opportunity_answer(insights)
+        metrics = _select(insights.community_snapshot, _INTENT_METRICS[intent])
+        evidence.extend(insights.business_landscape.evidence)
+        for metric in metrics:
+            evidence.extend(metric.evidence)
+    elif intent is Intent.NEARBY_BUSINESSES:
         businesses = business_service.list_businesses(
             session, category=parsed.business_category
         )

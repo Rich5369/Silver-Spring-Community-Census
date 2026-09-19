@@ -35,6 +35,7 @@ class Intent(str, Enum):
     COMMUTE = "commute"
     BUSINESS_CATEGORIES = "business_categories"
     NEARBY_BUSINESSES = "nearby_businesses"
+    BUSINESS_OPPORTUNITY = "business_opportunity"
 
 
 #: The only geography the MVP has data for.
@@ -52,6 +53,7 @@ SUGGESTED_QUESTIONS: tuple[str, ...] = (
     "How do people commute to work?",
     "What kinds of businesses are in the area?",
     "How many restaurants are nearby?",
+    "Which business could be successful opening here?",
 )
 
 
