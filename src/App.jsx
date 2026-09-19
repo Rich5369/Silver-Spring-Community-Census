@@ -10,7 +10,7 @@ import MapPanel from './components/MapPanel';
 import QueryPanel from './components/QueryPanel';
 import { buildBusinessFilters, queryBusinesses } from './services/businessQuery';
 import { useCommunityData } from './services/useCommunityData';
-import { askCommunityQuestion, getGovernmentSummary, getGovernmentTrends } from './services/api';
+import { askCommunityQuestion, getGovernmentServiceRequests, getGovernmentSummary, getGovernmentTrends } from './services/api';
 
 function App() {
   const { data, status, issue, usingFallback } = useCommunityData();
@@ -22,6 +22,7 @@ function App() {
   const [queryState, setQueryState] = useState({ status: 'idle', result: null, error: null });
   const [governmentSummary, setGovernmentSummary] = useState(null);
   const [governmentTrends, setGovernmentTrends] = useState(null);
+  const [serviceRequests, setServiceRequests] = useState(null);
   const queryFacilities = queryState.result?.parsed?.intent === 'facilities'
     ? (queryState.result.facilities ?? []) : [];
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
@@ -41,6 +42,9 @@ function App() {
     getGovernmentTrends()
       .then((trends) => { if (active) setGovernmentTrends(trends); })
       .catch(() => { if (active) setGovernmentTrends(null); });
+    getGovernmentServiceRequests()
+      .then((requests) => { if (active) setServiceRequests(requests); })
+      .catch(() => { if (active) setServiceRequests(null); });
     return () => { active = false; };
   }, []);
   const queryBusinessIds = queryState.result?.parsed?.intent === 'nearby_businesses'
@@ -177,7 +181,7 @@ function App() {
           <details className="exploration-tools" id="business-explorer" ref={businessToolsRef}>
             <summary>Business Opportunity Explorer and planning context</summary>
             <OpportunityExplorer insights={data.profile} businesses={data.businesses} />
-            <GovernmentPlanningPanel summary={governmentSummary} trends={governmentTrends} />
+            <GovernmentPlanningPanel summary={governmentSummary} trends={governmentTrends} serviceRequests={serviceRequests} />
           </details>
         </div>
       </main>

@@ -1,4 +1,4 @@
-function GovernmentPlanningPanel({ summary, trends }) {
+function GovernmentPlanningPanel({ summary, trends, serviceRequests }) {
   if (!summary) return null;
 
   const studyArea = summary.study_area ?? {};
@@ -22,6 +22,21 @@ function GovernmentPlanningPanel({ summary, trends }) {
       <p className="government-panel-intro">
         A current, evidence-backed view of community composition and the local business landscape.
       </p>
+      {summary.priorities?.length > 0 && (
+        <section className="civic-priorities" aria-labelledby="civic-priorities-title">
+          <h4 id="civic-priorities-title">Decision signals for officials</h4>
+          <p className="government-trend-note">These are screening signals, not predictions or policy recommendations.</p>
+          {summary.priorities.map((item) => (
+            <article className="civic-priority" key={item.key}>
+              <div className="government-bar-label"><strong>{item.priority}</strong><span>Evidence-backed signal</span></div>
+              <p><strong>{item.signal}</strong></p>
+              <p>{item.why_it_matters}</p>
+              <p><strong>Next step:</strong> {item.next_step}</p>
+              {item.evidence?.length > 0 && <small>{item.evidence.length} cited source{item.evidence.length === 1 ? '' : 's'}</small>}
+            </article>
+          ))}
+        </section>
+      )}
       <ul className="government-panel-list">
         {summary.available_views?.map((view) => <li key={view}>{view}</li>)}
       </ul>
@@ -90,6 +105,21 @@ function GovernmentPlanningPanel({ summary, trends }) {
             );
           })}
           <p className="government-trend-note">ACS 5-year estimates across the project’s 14-tract study area; not a causal displacement measure.</p>
+        </section>
+      )}
+      {serviceRequests?.series?.length > 1 && (
+        <section className="government-trends" aria-labelledby="service-request-title">
+          <h4 id="service-request-title">Official service-request trend</h4>
+          <div className="trend-series">
+            <div className="government-bar-label"><span>MC311 requests · ZIP 20910</span><strong>County source</strong></div>
+            <div className="trend-points">
+              {serviceRequests.series.map((point) => {
+                const max = Math.max(...serviceRequests.series.map((item) => item.requests), 1);
+                return <div className="trend-point" key={point.year}><span style={{ height: `${12 + (point.requests / max) * 68}px` }} title={`${point.year}: ${point.requests.toLocaleString()} requests`} /><small>{point.year}</small></div>;
+              })}
+            </div>
+          </div>
+          <p className="government-trend-note">Official Montgomery County MC311 volume. ZIP 20910 is broader than Fenton Village and does not prove unmet need.</p>
         </section>
       )}
       <p className="government-trend-note">

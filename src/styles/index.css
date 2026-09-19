@@ -318,6 +318,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .government-panel-intro { margin: 8px 0; color: #5f7067; font-size: 11px; line-height: 1.45; }
 .government-panel-list { margin: 8px 0 12px; padding-left: 18px; color: #31493d; font-size: 11px; line-height: 1.6; }
 .government-panel-list.muted { color: #6c776f; }
+.civic-priorities { display: grid; gap: 10px; margin: 14px 0; }
+.civic-priority { padding: 10px; border: 1px solid #cadbcf; border-left: 4px solid #267052; border-radius: 6px; background: #fbfdfc; }
+.civic-priority p { margin: 6px 0 0; color: #31493d; font-size: 11px; line-height: 1.45; }
+.civic-priority small { color: #6c776f; }
 .government-panel details { color: #52685b; font-size: 11px; }
 .government-visuals { display: grid; gap: 16px; margin-top: 16px; }
 .government-visuals h4 { margin: 0 0 8px; color: #31493d; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }

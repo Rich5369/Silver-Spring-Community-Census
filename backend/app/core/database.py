@@ -36,7 +36,7 @@ def _enable_sqlite_foreign_keys(dbapi_connection: object, _connection_record: ob
         cursor.close()
 
 
-def _prepare_sqlite_path(database_url: str) -> None:
+def _normalise_sqlite_url(database_url: str) -> str:
     """Create the parent directory for a file-backed SQLite database.
 
     SQLAlchemy will not create missing directories, so a default of
@@ -47,23 +47,28 @@ def _prepare_sqlite_path(database_url: str) -> None:
     """
     prefix = "sqlite:///"
     if not database_url.startswith(prefix):
-        return
+        return database_url
 
     raw_path = database_url[len(prefix) :]
     # ":memory:" and the empty (temp-file) form have no directory to create.
     if not raw_path or raw_path.startswith(":"):
-        return
+        return database_url
 
     path = Path(raw_path)
     if not path.is_absolute():
         path = BACKEND_DIR / path
     path.parent.mkdir(parents=True, exist_ok=True)
+    # SQLAlchemy resolves a relative SQLite URL against the process cwd, not
+    # the directory we just prepared. Return an absolute URL so starting
+    # uvicorn from the repository root, backend/, or Render's working
+    # directory always opens the same populated database.
+    return f"sqlite:///{path.resolve()}"
 
 
 def create_database_engine(settings: Settings | None = None) -> Engine:
     """Build a SQLAlchemy :class:`~sqlalchemy.Engine` from settings."""
     settings = settings or get_settings()
-    _prepare_sqlite_path(settings.database_url)
+    database_url = _normalise_sqlite_url(settings.database_url)
 
     connect_args: dict[str, object] = {}
     if settings.is_sqlite:
@@ -72,7 +77,7 @@ def create_database_engine(settings: Settings | None = None) -> Engine:
         connect_args["check_same_thread"] = False
 
     return create_engine(
-        settings.database_url,
+        database_url,
         echo=settings.database_echo,
         connect_args=connect_args,
         future=True,
