@@ -6,6 +6,7 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
   const selectedInsights = insights ?? fentonVillageInsights;
   const stats = Array.isArray(selectedInsights.stats) ? selectedInsights.stats : [];
   const sources = Array.isArray(selectedInsights.sources) ? selectedInsights.sources : [];
+  const isDemo = /demo|mock|illustrative/i.test(selectedInsights.dataStatus || '');
 
   return (
     <aside className="insights-panel" aria-labelledby="insights-title">
@@ -31,11 +32,12 @@ function InsightsPanel({ insights = fentonVillageInsights }) {
       <section className="evidence-section" aria-labelledby="evidence-title">
         <div className="section-heading">
           <h3 id="evidence-title">Evidence &amp; Sources</h3>
-          <span>Demo only</span>
+          <span>{isDemo ? 'Demo only' : 'Sources'}</span>
         </div>
         <p className="source-intro">
-          No verified Census source is connected yet. Future records will identify the dataset,
-          year, geography, table, and source link.
+          {isDemo
+            ? 'No verified Census source is connected yet. Future records will identify the dataset, year, geography, table, and source link.'
+            : 'Source records identify the organization, dataset, year, geography, table, and original link.'}
         </p>
         <div className="source-list">
           {sources.map((source, index) => (

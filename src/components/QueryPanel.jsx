@@ -7,6 +7,8 @@ function QueryPanel({
   onFilterChange,
   onSearchChange,
   onClear,
+  dataStatus,
+  usingFallback,
 }) {
   return (
     <section className="query-panel" aria-label="Search and filters">
@@ -53,6 +55,11 @@ function QueryPanel({
             Clear Filters
           </button>
         </div>
+        <p className="data-load-status" role="status">
+          {dataStatus === 'loading' && 'Loading community data…'}
+          {dataStatus === 'error' && 'API unavailable — showing safe demo data.'}
+          {dataStatus === 'success' && usingFallback && 'Demo data mode — no backend URL configured.'}
+        </p>
       </div>
     </section>
   );

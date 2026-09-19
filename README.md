@@ -10,3 +10,77 @@ npm run dev
 ```
 
 The frontend is a lightweight React + Vite application. UI components live in `src/components`, temporary display content in `src/data`, API integration helpers in `src/services`, and global presentation styles in `src/styles`.
+
+## Backend integration contract
+
+Set `VITE_API_BASE_URL` to the backend origin, without a trailing slash. If it is omitted, or if a configured API request fails, the frontend safely displays its clearly labeled demo data.
+
+The endpoint names below are proposals and may be changed in the centralized `ENDPOINTS` object in `src/services/api.js` when the backend routes are finalized:
+
+- `GET /businesses`
+- `GET /community-profiles/:area`
+- `GET /sources?area=:area`
+- `GET /transit`
+
+### Businesses response
+
+Return this exact envelope. `businesses` may be an empty array. Coordinates must be JSON numbers; records without a name or valid coordinates are discarded by the adapter.
+
+```json
+{
+  "businesses": [
+    {
+      "id": 1,
+      "name": "Example Business",
+      "category": "Restaurant",
+      "latitude": 38.9921,
+      "longitude": -77.0242,
+      "address": "123 Example Street, Silver Spring, MD",
+      "source": "Organization or dataset name"
+    }
+  ]
+}
+```
+
+### Community profile response
+
+Return this exact envelope. Unknown numeric statistics should be `null`, not formatted strings. The frontend handles formatting and missing values.
+
+```json
+{
+  "profile": {
+    "areaName": "Fenton Village",
+    "summary": "Short, plain-language description of the selected area.",
+    "dataStatus": "Provisional data",
+    "statistics": {
+      "population": 8200,
+      "medianHouseholdIncome": 84000,
+      "language": {
+        "label": "Multilingual households",
+        "value": 38,
+        "unit": "percent"
+      },
+      "businessCount": 14,
+      "restaurantCount": 2,
+      "retailCount": 2
+    }
+  }
+}
+```
+
+Sources are requested separately and use this envelope:
+
+```json
+{
+  "sources": [
+    {
+      "organization": "",
+      "dataset": "",
+      "year": "",
+      "geography": "",
+      "table": "",
+      "url": ""
+    }
+  ]
+}
+```
