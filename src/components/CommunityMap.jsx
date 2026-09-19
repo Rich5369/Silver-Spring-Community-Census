@@ -13,7 +13,11 @@ function MapController({ center, zoom, focusCenter, focusZoom, exploreKey, reset
 
   useEffect(() => {
     if (exploreKey > 0) {
-      map.flyTo(focusCenter, focusZoom, { animate: true, duration: 1.1 });
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      map.flyTo(focusCenter, focusZoom, {
+        animate: !reduceMotion,
+        duration: reduceMotion ? 0 : 1.1,
+      });
     }
   }, [exploreKey, focusCenter, focusZoom, map]);
 
@@ -84,7 +88,16 @@ function CommunityMap({
   };
 
   return (
-    <div className="map-canvas">
+    <div
+      className="map-canvas"
+      role="region"
+      aria-label="Interactive community map of Silver Spring, Maryland"
+      aria-describedby="map-accessibility-description"
+    >
+      <p className="visually-hidden" id="map-accessibility-description">
+        Use the map controls to zoom and pan. Fenton Village and available business information
+        are also summarized in the Community Insights panel.
+      </p>
       <MapContainer
         center={center}
         zoom={zoom}
