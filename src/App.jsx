@@ -83,36 +83,8 @@ function App() {
     <div className="app-shell">
       <Header />
       <main className="workspace">
-        <AskCommunity
-          question={question}
-          onQuestionChange={setQuestion}
-          onAsk={askQuestion}
-          status={queryState.status}
-          result={queryState.result}
-          error={queryState.error}
-        />
-        <InsightsPanel
-          insights={selectedInsights}
-          comparisonAreas={comparisonAreas}
-          businesses={data.businesses}
-          governmentSummary={governmentSummary}
-          isAreaSelected={Boolean(selectedGeoJsonArea)}
-          hasQueryResult={Boolean(queryState.result)}
-        />
-        <QueryPanel
-          activeFilter={activeFilter}
-          filters={filters}
-          searchTerm={searchTerm}
-          resultCount={visibleBusinesses.length}
-          totalCount={data.businesses.length}
-          onFilterChange={setActiveFilter}
-          onSearchChange={setSearchTerm}
-          onClear={clearFilters}
-          dataStatus={status}
-          dataIssue={issue}
-          usingFallback={usingFallback}
-        />
-        <div className="content-grid">
+        <div className="main-layout">
+          <div className="content-grid">
           <MapPanel
             areaName={selectedInsights.areaName}
             businesses={visibleBusinesses}
@@ -128,6 +100,38 @@ function App() {
             exploreKey={fentonExploreKey}
             hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
           />
+          </div>
+          <aside className="right-rail" aria-label="Community data and planning tools">
+            <AskCommunity
+              question={question}
+              onQuestionChange={setQuestion}
+              onAsk={askQuestion}
+              status={queryState.status}
+              result={queryState.result}
+              error={queryState.error}
+            />
+            <QueryPanel
+              activeFilter={activeFilter}
+              filters={filters}
+              searchTerm={searchTerm}
+              resultCount={visibleBusinesses.length}
+              totalCount={data.businesses.length}
+              onFilterChange={setActiveFilter}
+              onSearchChange={setSearchTerm}
+              onClear={clearFilters}
+              dataStatus={status}
+              dataIssue={issue}
+              usingFallback={usingFallback}
+            />
+            <InsightsPanel
+              insights={selectedInsights}
+              comparisonAreas={comparisonAreas}
+              businesses={data.businesses}
+              governmentSummary={governmentSummary}
+              isAreaSelected={Boolean(selectedGeoJsonArea)}
+              hasQueryResult={Boolean(queryState.result)}
+            />
+          </aside>
         </div>
       </main>
     </div>

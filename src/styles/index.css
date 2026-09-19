@@ -56,6 +56,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #91d0a8; box-shadow: 0 0 0 4px rgb(145 208 168 / 12%); }
 
 .workspace { padding: 22px clamp(24px, 4vw, 64px) 38px; }
+.main-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr); align-items: start; gap: 18px; }
+.right-rail { display: grid; gap: 14px; min-width: 0; max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 2px; }
+.right-rail .ask-community, .right-rail .query-panel, .right-rail .community-context { margin-bottom: 0; }
 .query-panel { display: flex; align-items: end; gap: 24px; margin-bottom: 24px; padding: 14px 16px 16px; border: 1px solid #d4ddd6; border-radius: 9px; background: #f8faf8; box-shadow: 0 2px 10px rgb(31 49 39 / 4%); }
 .ask-community { margin-bottom: 14px; padding: 16px; border: 1px solid #b9d2c1; border-radius: 9px; background: #f3f8f4; }
 .ask-community-heading h2 { margin: 4px 0 0; color: #203c2f; font-size: 17px; }
@@ -296,6 +299,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 
 @media (max-width: 900px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .right-rail { max-height: none; overflow: visible; }
   .query-panel { align-items: stretch; flex-direction: column; gap: 14px; }
   .community-context-details { grid-template-columns: 1fr; }
   .community-context-details > * { grid-column: 1; }
