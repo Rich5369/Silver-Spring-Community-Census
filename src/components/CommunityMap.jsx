@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
+import BusinessLayer from './BusinessLayer';
 
 function MapController({ center, zoom, resetKey }) {
   const map = useMap();
@@ -21,7 +22,7 @@ function MapController({ center, zoom, resetKey }) {
   return null;
 }
 
-function CommunityMap({ center, zoom, locations = [], resetKey = 0 }) {
+function CommunityMap({ center, zoom, locations = [], businesses = [], resetKey = 0 }) {
   return (
     <div className="map-canvas">
       <MapContainer
@@ -48,8 +49,14 @@ function CommunityMap({ center, zoom, locations = [], resetKey = 0 }) {
             </Popup>
           </CircleMarker>
         ))}
+        <BusinessLayer businesses={businesses} />
         <MapController center={center} zoom={zoom} resetKey={resetKey} />
       </MapContainer>
+      {businesses.length > 0 && (
+        <div className="mock-layer-notice" role="note">
+          Demo layer: {businesses.length} mock businesses — not verified data
+        </div>
+      )}
     </div>
   );
 }
