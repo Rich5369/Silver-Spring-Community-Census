@@ -39,10 +39,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .purpose-kicker { display: block; margin-bottom: 8px; color: #1f6748; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .capability-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
 .capability-grid article { min-width: 0; padding: 13px; border-left: 3px solid #78a98b; background: #f6f9f7; }
+.capability-icon { display: grid; width: 28px; height: 28px; margin-bottom: 12px; place-items: center; border: 1px solid #b3c9ba; border-radius: 50%; color: #1f6748; background: #fff; font-size: 16px; transition: transform 220ms ease, color 220ms ease, background 220ms ease; }
+.capability-grid article:hover .capability-icon { color: #fff; background: #1f6748; transform: rotate(-12deg) scale(1.08); }
 .capability-grid h3 { margin: 0; color: #244535; font-size: 13px; }
 .capability-grid p { margin: 5px 0 0; color: #607168; font-size: 11px; line-height: 1.45; }
 .hero-instrument { position: absolute; z-index: 0; top: 8%; right: 7%; width: min(43vw, 560px); aspect-ratio: 1; opacity: .8; transform: rotate(-12deg); }
 .instrument-orbit { position: absolute; inset: 12%; border: 1px solid rgb(32 32 28 / 24%); border-radius: 50%; transform: rotate(35deg) scaleY(.38); }
+.instrument-orbit { animation: orbit-drift 12s ease-in-out infinite alternate; }
 .orbit-two { inset: 22% 4%; transform: rotate(-35deg) scaleY(.38); }
 .instrument-core { position: absolute; inset: 35%; display: grid; place-content: center; border: 1px solid rgb(20 20 18 / 25%); border-radius: 50%; background: rgb(255 255 255 / 55%); box-shadow: 0 0 0 18px rgb(255 255 255 / 22%), 0 20px 70px rgb(0 0 0 / 9%); text-align: center; }
 .instrument-core span { color: #181816; font: 500 clamp(19px, 2vw, 30px)/.9 ui-monospace, SFMono-Regular, monospace; letter-spacing: -.08em; }
@@ -50,12 +53,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .instrument-point { position: absolute; width: 13px; height: 13px; border: 3px solid #f5f5f2; border-radius: 50%; background: #1f5e47; box-shadow: 0 2px 9px rgb(0 0 0 / 22%); }
 .point-one { top: 22%; left: 18%; }.point-two { top: 61%; right: 10%; background: #b17843; }.point-three { bottom: 15%; left: 41%; background: #2e5a76; }
 .instrument-caption { position: absolute; right: 17%; bottom: 18%; color: #71736e; font: 9px/1 ui-monospace, SFMono-Regular, monospace; letter-spacing: .12em; }
+@keyframes orbit-drift { from { transform: rotate(29deg) scaleY(.38) translateX(-4px); } to { transform: rotate(41deg) scaleY(.44) translateX(4px); } }
 .evidence-bar { display: flex; align-items: center; gap: 24px; padding: 12px clamp(24px, 6vw, 88px); color: #dcebe1; background: #1f4d3b; }
 .evidence-bar-status { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; font-size: 11px; font-weight: 750; }
 .status-pulse { width: 8px; height: 8px; border-radius: 50%; background: #8bd2a1; box-shadow: 0 0 0 4px rgb(139 210 161 / 14%); }
 .status-pulse.offline { background: #e5b06c; box-shadow: 0 0 0 4px rgb(229 176 108 / 14%); }
 .evidence-bar-stats { display: flex; gap: 22px; margin-left: auto; }
 .evidence-bar-stats div { display: flex; align-items: baseline; gap: 7px; }
+.evidence-bar-stats div { transition: transform 180ms ease; }
+.evidence-bar-stats div:hover { transform: translateY(-2px); }
+.evidence-icon { display: grid; width: 22px; height: 22px; place-items: center; border: 1px solid rgb(182 208 192 / 45%); border-radius: 7px; color: #b6d0c0; font-size: 13px; font-weight: 400; }
 .evidence-bar-stats strong { color: #fff; font-size: 16px; font-variant-numeric: tabular-nums; }
 .evidence-bar-stats span, .evidence-bar > p { color: #b6d0c0; font-size: 10px; }
 .evidence-bar > p { margin: 0; }
@@ -264,10 +271,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .map-toolbar-actions { display: flex; align-items: center; gap: 8px; }
 .map-toolbar-actions button { min-height: 34px; white-space: nowrap; }
 .primary-button { padding: 8px 12px; border: 1px solid #1e533b; border-radius: 7px; color: #fff; background: #246247; font-size: 12px; font-weight: 800; }
-.primary-button:hover { background: #1d523b; }
+.primary-button { position: relative; overflow: hidden; }
+.primary-button::after { position: absolute; top: 0; bottom: 0; left: -35%; width: 20%; content: ''; background: rgb(255 255 255 / 30%); transform: skewX(-18deg); transition: left 400ms ease; }
+.primary-button:hover { background: #1d523b; transform: translateY(-1px); box-shadow: 0 10px 22px rgb(31 88 67 / 24%); }
+.primary-button:hover::after { left: 120%; }
 .primary-button:focus-visible, .secondary-button:focus-visible { outline-color: #68a984; }
 .secondary-button { padding: 8px 12px; border: 1px solid #ccd6ce; border-radius: 7px; color: #3f5549; background: #fff; font-size: 12px; font-weight: 700; }
 .secondary-button:hover { border-color: #90a99a; background: #f3f7f4; }
+.secondary-button:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgb(30 60 45 / 9%); }
 
 .map-canvas { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; background: #edf1eb; }
 .leaflet-map { width: 100%; height: 100%; min-height: 0; }

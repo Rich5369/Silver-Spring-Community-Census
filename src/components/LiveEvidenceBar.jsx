@@ -6,9 +6,9 @@ function LiveEvidenceBar({ data, status, usingFallback }) {
     <section className="evidence-bar" aria-label="Data coverage at a glance">
       <div className="evidence-bar-status"><span className={`status-pulse ${status === 'error' ? 'offline' : ''}`} />{label}</div>
       <div className="evidence-bar-stats">
-        <div><strong>{tractCount || '—'}</strong><span>Census areas</span></div>
-        <div><strong>{data.businesses.length || '—'}</strong><span>Mapped places</span></div>
-        <div><strong>{sourceCount || '—'}</strong><span>Evidence sources</span></div>
+        <div><b className="evidence-icon" aria-hidden="true">◎</b><strong>{tractCount || '—'}</strong><span>Census areas</span></div>
+        <div><b className="evidence-icon" aria-hidden="true">⌖</b><strong>{data.businesses.length || '—'}</strong><span>Mapped places</span></div>
+        <div><b className="evidence-icon" aria-hidden="true">◈</b><strong>{sourceCount || '—'}</strong><span>Evidence sources</span></div>
       </div>
       <p>Every headline number links back to its public source.</p>
     </section>

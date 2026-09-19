@@ -1,8 +1,8 @@
 const capabilities = [
-  { title: 'Explore communities', text: 'Select Census areas, understand local conditions, and ask questions about the data.' },
-  { title: 'Understand local businesses', text: 'Search and filter connected business records around Fenton Village.' },
-  { title: 'Analyze community trends', text: 'Review supported population, income, and community indicators over time.' },
-  { title: 'Trace the evidence', text: 'See the public datasets behind important statistics and answers.' },
+  { icon: '↗', title: 'Explore communities', text: 'Select Census areas, understand local conditions, and ask questions about the data.' },
+  { icon: '◌', title: 'Understand local businesses', text: 'Search and filter connected business records around Fenton Village.' },
+  { icon: '⌁', title: 'Analyze community trends', text: 'Review supported population, income, and community indicators over time.' },
+  { icon: '⊙', title: 'Trace the evidence', text: 'See the public datasets behind important statistics and answers.' },
 ];
 
 export default function HomeIntro({ onExplore, onViewTrends }) {
@@ -31,6 +31,7 @@ export default function HomeIntro({ onExplore, onViewTrends }) {
         <div className="capability-grid">
           {capabilities.map((capability) => (
             <article key={capability.title}>
+              <span className="capability-icon" aria-hidden="true">{capability.icon}</span>
               <h3>{capability.title}</h3>
               <p>{capability.text}</p>
             </article>
