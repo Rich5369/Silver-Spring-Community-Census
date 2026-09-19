@@ -20,6 +20,8 @@ function App() {
   const [queryState, setQueryState] = useState({ status: 'idle', result: null, error: null });
   const [governmentSummary, setGovernmentSummary] = useState(null);
   const [governmentTrends, setGovernmentTrends] = useState(null);
+  const queryFacilities = queryState.result?.parsed?.intent === 'facilities'
+    ? (queryState.result.facilities ?? []) : [];
   const selectedInsights = selectedGeoJsonArea ?? data.profile;
   const requestVersion = useRef(0);
   const selectArea = (area) => {
@@ -108,7 +110,8 @@ function App() {
         <div className="content-grid">
           <MapPanel
             areaName={selectedInsights.areaName}
-            businesses={visibleBusinesses}
+            businesses={queryState.result?.parsed?.intent === 'facilities' ? [] : visibleBusinesses}
+            facilities={queryFacilities}
             totalBusinessCount={data.businesses.length}
             businessLayerAvailable={data.businesses.length > 0}
             evidenceSources={data.profile.sources}
@@ -119,7 +122,7 @@ function App() {
             onDefaultAreaSelect={() => selectArea(null)}
             onExploreFenton={exploreFentonVillage}
             exploreKey={fentonExploreKey}
-            hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0}
+            hasActiveQuery={activeFilter !== 'all' || searchTerm.trim().length > 0 || queryFacilities.length > 0}
           />
           <AskCommunity
             question={question}

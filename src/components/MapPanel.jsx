@@ -12,6 +12,7 @@ const views = [
 function MapPanel({
   areaName = 'Fenton Village',
   businesses = [],
+  facilities = [],
   totalBusinessCount = 0,
   businessLayerAvailable = false,
   evidenceSources = [],
@@ -148,6 +149,7 @@ function MapPanel({
           focusZoom={16}
           locations={[fentonVillage]}
           businesses={businesses}
+          facilities={facilities}
           businessLayerAvailable={businessLayerAvailable}
           evidenceSources={evidenceSources}
           communityGeoJson={communityGeoJson}

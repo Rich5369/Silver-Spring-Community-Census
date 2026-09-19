@@ -100,6 +100,24 @@ function LocationMarker({ location, onSelect }) {
   );
 }
 
+function FacilityMarkers({ facilities = [] }) {
+  return facilities.map((facility) => (
+    <CircleMarker
+      key={`facility-${facility.id}`}
+      center={[facility.latitude, facility.longitude]}
+      radius={8}
+      pane="businessMarkersPane"
+      pathOptions={{ color: '#ffffff', fillColor: '#2d6fa3', fillOpacity: 0.95, weight: 2 }}
+    >
+      <Popup>
+        <strong>{facility.name}</strong>
+        <p>{facility.facility_type} · {facility.address || 'Address not provided'}</p>
+        <p><a href={facility.source_url} target="_blank" rel="noreferrer">OpenStreetMap evidence</a></p>
+      </Popup>
+    </CircleMarker>
+  ));
+}
+
 function CommunityMap({
   center,
   zoom,
@@ -107,6 +125,7 @@ function CommunityMap({
   focusZoom = zoom,
   locations = [],
   businesses = [],
+  facilities = [],
   businessLayerAvailable = false,
   evidenceSources = [],
   communityGeoJson = null,
@@ -209,6 +228,7 @@ function CommunityMap({
           isVisible={isVisible}
           onAreaSelect={selectArea}
         />
+        <FacilityMarkers facilities={facilities} />
         <MapController
           isVisible={isVisible}
           center={center}
