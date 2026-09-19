@@ -17,7 +17,7 @@ const plannedSources = [
 function AboutData() {
   return (
     <details className="about-data">
-      <summary>About the Data</summary>
+      <summary><span aria-hidden="true">ⓘ</span> About this data</summary>
       <div className="about-data-content">
         <p>
           The MVP uses demo community and business records through the same frontend contract

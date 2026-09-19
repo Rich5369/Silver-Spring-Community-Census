@@ -3,14 +3,12 @@ export const businessFilters = [
   { id: 'restaurants', label: 'Restaurants' },
   { id: 'retail', label: 'Retail' },
   { id: 'services', label: 'Services' },
-  { id: 'community', label: 'Community' },
 ];
 
 const categoryGroups = {
   restaurants: ['Restaurant', 'Cafe', 'Bakery'],
   retail: ['Retail', 'Grocery', 'Florist'],
   services: ['Health Services', 'Personal Care', 'Pet Services', 'Technology Services', 'Professional Services'],
-  community: ['Bike Shop'],
 };
 
 // Local adapter: this function can later be replaced by an API or natural-language query service.

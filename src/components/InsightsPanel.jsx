@@ -50,8 +50,8 @@ function InsightsPanel({ insights = fentonVillageInsights, comparisonAreas = [] 
         </div>
       </section>
 
-      <ComparisonPanel areas={comparisonAreas} />
       <AboutData />
+      {comparisonAreas.length > 1 && <ComparisonPanel areas={comparisonAreas} />}
     </aside>
   );
 }

@@ -14,7 +14,7 @@ function QueryPanel({
   return (
     <section className="query-panel" aria-label="Search and filters">
       <div className="search-area">
-        <label htmlFor="community-query">Search the map</label>
+        <label htmlFor="community-query">Search businesses</label>
         <form className="search-field" onSubmit={(event) => event.preventDefault()}>
           <span aria-hidden="true">⌕</span>
           <input
@@ -22,10 +22,13 @@ function QueryPanel({
             type="search"
             value={searchTerm}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search businesses or explore the community..."
+            placeholder="Search businesses by name or category..."
+            aria-describedby="business-search-help"
           />
-          <button type="submit">Search</button>
         </form>
+        <span className="visually-hidden" id="business-search-help">
+          Results update as you type.
+        </span>
       </div>
 
       <div className="filter-area" role="group" aria-labelledby="business-filter-label">
@@ -52,7 +55,12 @@ function QueryPanel({
               </button>
             );
           })}
-          <button className="filter-chip clear-filter" type="button" onClick={onClear}>
+          <button
+            className="filter-chip clear-filter"
+            type="button"
+            onClick={onClear}
+            disabled={activeFilter === 'all' && searchTerm.length === 0}
+          >
             Clear Filters
           </button>
         </div>
