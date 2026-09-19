@@ -235,3 +235,32 @@ class OverpassClient:
         for place in places:
             unique.setdefault(place.osm_id, place)
         return list(unique.values())
+
+    def fetch_facilities(self, bbox: BoundingBox) -> list[OsmPlace]:
+        """Fetch named civic facilities without mixing them into businesses."""
+        box = bbox.as_overpass_bbox()
+        query = f'''[out:json][timeout:60];(
+          nwr["amenity"~"school|library|hospital|clinic|social_centre|community_centre|kindergarten|bus_station|social_facility"]({box});
+          nwr["leisure"~"park|playground"]({box});
+        );out center tags;'''
+        try:
+            with httpx.Client(timeout=self._timeout, transport=self._transport) as client:
+                response = client.post(self.url, data={"data": query}, headers={"User-Agent": "SilverSpringCommunityCensus/0.1"})
+                response.raise_for_status()
+                elements = response.json().get("elements", [])
+        except (httpx.HTTPError, ValueError) as exc:
+            raise OverpassError(f"Overpass facility request failed: {exc}") from exc
+        result = []
+        seen = set()
+        types = {"school": "school", "kindergarten": "school", "library": "library", "hospital": "hospital", "clinic": "clinic", "park": "park", "playground": "park", "bus_station": "transit", "social_centre": "community", "community_centre": "community", "social_facility": "community"}
+        for element in elements:
+            tags = element.get("tags", {})
+            name = str(tags.get("name", "")).strip()
+            coordinates = _coordinates(element)
+            raw_type = tags.get("amenity") or tags.get("leisure")
+            facility_type = types.get(raw_type)
+            key = f"{element.get('type')}/{element.get('id')}"
+            if name and coordinates and facility_type and key not in seen:
+                seen.add(key)
+                result.append(OsmPlace(key, name, facility_type, coordinates[0], coordinates[1], _compose_address(tags), raw_type, {}))
+        return result

@@ -23,6 +23,8 @@ from app.services import business_service
 from app.services.geojson_service import build_business_features
 from app.services.insights_service import build_insights
 from app.services.trends_service import build_government_trends
+from app.models import Facility
+from app.schemas.facility import FacilityOut
 
 UNSUPPORTED_ANSWER = (
     "This question is outside what the current dataset can answer. The data "
@@ -249,6 +251,7 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
     businesses = []
     business_features = None
     trends = []
+    facilities = []
     if intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.GOVERNMENT_OVERVIEW):
         trend_response = build_government_trends(session)
         trends = trend_response.series
@@ -259,7 +262,16 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
     if intent in (Intent.INCOME, Intent.AGE, Intent.COMMUNITY_OVERVIEW, Intent.DIVERSITY):
         limitations.append(MEDIAN_LIMITATION)
 
-    if intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW, Intent.POLICY_SUPPORT, Intent.COMMUNITY_SUPPORT, Intent.BUSINESS_HEALTH, Intent.HEALTH_ACCESS):
+    if intent is Intent.FACILITIES:
+        requested_type = next((kind for kind in ("school", "library", "park", "hospital", "clinic", "transit") if kind in question.lower()), None)
+        query = session.query(Facility)
+        if requested_type:
+            query = query.filter(Facility.facility_type == requested_type)
+        rows = query.order_by(Facility.name).all()
+        facilities = [FacilityOut(id=row.id, name=row.name, facility_type=row.facility_type, latitude=row.latitude, longitude=row.longitude, address=row.address, source=f"{row.data_source.organization} ({row.external_id})", source_url=row.data_source.source_url) for row in rows]
+        answer = f"{len(facilities)} {requested_type or 'civic facilities'} are mapped in the current OpenStreetMap snapshot. This is an inventory signal, not a complete official register."
+        limitations.append("OpenStreetMap coverage may be incomplete; verify against the relevant county or state register.")
+    elif intent in (Intent.TRENDS, Intent.DISPLACEMENT, Intent.DIVERSITY, Intent.GOVERNMENT_OVERVIEW, Intent.POLICY_SUPPORT, Intent.COMMUNITY_SUPPORT, Intent.BUSINESS_HEALTH, Intent.HEALTH_ACCESS):
         metrics = _select(insights.community_snapshot, _INTENT_METRICS[intent])
         answer = _civic_answer(intent, insights, sorted({point.year for series in trends for point in series.points}))
         for metric in metrics:
@@ -310,6 +322,7 @@ def answer_query(session: Session, question: str, parsed: ParsedQuery) -> QueryR
         categories=categories,
         businesses=businesses,
         trends=trends,
+        facilities=facilities,
         map=QueryMap(
             area_geoids=insights.study_area.tract_geoids,
             businesses=business_features,
