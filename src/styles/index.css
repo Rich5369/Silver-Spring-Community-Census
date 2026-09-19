@@ -109,6 +109,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .ask-community-form input { min-width: 0; flex: 1; padding: 10px 12px; border: 1px solid #afc3b4; border-radius: 7px; background: #fff; font: inherit; }
 .suggested-questions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
 .suggested-questions button { padding: 5px 8px; border: 1px solid #cfddd2; border-radius: 999px; color: #365545; background: #fff; font-size: 10px; }
+.suggestions-after-answer { margin-top: 16px; padding-top: 13px; border-top: 1px solid #d4ddd6; }
+.suggestions-after-answer .suggestion-label { margin-top: 0; }
 .query-answer { display: grid; gap: 8px; margin-top: 13px; padding: 13px; border-left: 4px solid #397254; background: #fff; }
 .query-answer p { margin: 5px 0 0; color: #263e32; font-size: 13px; line-height: 1.5; }
 .query-answer details, .query-answer li { color: #5f7067; font-size: 11px; line-height: 1.45; }
